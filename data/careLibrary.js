@@ -1,0 +1,860 @@
+﻿/* careLibrary.js – slaugos problemų biblioteka (global) */
+const CARE_LIBRARY_DATA = {
+  "problems": {
+    "Sutrikusi kvėpavimo funkcija": {
+      "system": "Kvėpavimas",
+      "goal": "Sumažinti dusulį ir užtikrinti pakankamą kvėpavimo funkciją.",
+      "interventions": [
+        "Stebėti kvėpavimo dažnį, ritmą, gylį ir pobūdį.",
+        "Vertinti dusulį ramybėje ir fizinio krūvio metu.",
+        "Užtikrinti pusiau sėdimą padėtį.",
+        "Stebėti SpO₂ ir bendrą paciento būklę.",
+        "Skirti O₂ pagal gydytojo paskyrimą.",
+        "Informuoti gydytoją blogėjant kvėpavimui."
+      ],
+      "evaluation": "Dusulys sumažėjo, kvėpavimas ritmingas, SpO₂ atitinka individualų tikslą."
+    },
+    "Neefektyvi dujų apykaita": {
+      "system": "Kvėpavimas",
+      "goal": "Pagerinti organizmo aprūpinimą deguonimi.",
+      "interventions": [
+        "Stebėti SpO₂, kvėpavimo dažnį ir sąmonės būklę.",
+        "Vertinti odos ir gleivinių spalvą.",
+        "Užtikrinti tinkamą paciento padėtį.",
+        "Taikyti O₂ terapiją pagal paskyrimą.",
+        "Vertinti NEWS2 rodiklius.",
+        "Informuoti gydytoją esant hipoksijos požymiams."
+      ],
+      "evaluation": "SpO₂ pagerėjo arba išlieka tikslinėse ribose, hipoksijos požymių nėra."
+    },
+    "Neefektyvus kvėpavimo takų praeinamumas": {
+      "system": "Kvėpavimas",
+      "goal": "Užtikrinti laisvus kvėpavimo takus.",
+      "interventions": [
+        "Vertinti sekreto kiekį, spalvą, kvapą ir konsistenciją.",
+        "Skatinti efektyvų kosulį ir atsikosėjimą.",
+        "Atlikti sekreto atsiurbimą pagal poreikį ir įstaigos tvarką.",
+        "Užtikrinti tinkamą padėtį sekreto pasišalinimui.",
+        "Skatinti skysčių vartojimą, jei nėra kontraindikacijų."
+      ],
+      "evaluation": "Kvėpavimo takai praeinami, sekretas pašalinamas, kvėpavimas laisvesnis."
+    },
+    "Kvėpavimo takai su tracheostominiu vamzdžiu": {
+      "system": "Kvėpavimas",
+      "goal": "Užtikrinti tracheostomos praeinamumą ir išvengti komplikacijų.",
+      "interventions": [
+        "Savalaikis atsiurbimas iš tracheostominio vamzdelio.",
+        "Vamzdelio drėkinimas.",
+        "Palatos oro drėkinimas.",
+        "Sekreto (kiekio/spalvos/klampumo) vertinimas ir dokumentavimas.",
+        "Stomos priežiūra – tvarsčio keitimas bent 2 k./parą.",
+        "Tracheostominio vamzdelio fiksacijos patikra.",
+        "Stebėti infekcijos, kraujavimo ar užsikimšimo požymius."
+      ],
+      "evaluation": "Tracheostoma praeinama, oda aplink stomą be pažeidimų, infekcijos požymių nėra."
+    },
+    "Aspiracijos rizika": {
+      "system": "Kvėpavimas",
+      "goal": "Išvengti aspiracijos ir kvėpavimo takų komplikacijų.",
+      "interventions": [
+        "Vertinti rijimo funkciją ir springimo požymius.",
+        "Maitinti tik saugioje padėtyje.",
+        "Maitinimo metu ir 30–60 min. po maitinimo laikyti pakeltą galvūgalį.",
+        "Naudoti paskirtą maisto ir skysčių konsistenciją.",
+        "Stebėti kosulį, balso pokyčius, dusulį po valgymo.",
+        "Užtikrinti burnos higieną."
+      ],
+      "evaluation": "Aspiracijos požymių nėra, pacientas maitinasi saugiai."
+    },
+    "Deguonies terapijos poreikis": {
+      "system": "Kvėpavimas",
+      "goal": "Užtikrinti tinkamą deguonies tiekimą pagal poreikį.",
+      "interventions": [
+        "Skirti O₂ pagal gydytojo paskyrimą ir SpO₂ duomenis.",
+        "Stebėti SpO₂ naudojant deguonies terapiją.",
+        "Reguliuoti O₂ tiekimą pagal paciento būklę.",
+        "Informuoti gydytoją keičiantis poreikiui."
+      ],
+      "evaluation": "SpO₂ išlieka tikslinėse ribose, deguonies terapija toleruojama."
+    },
+    "Tamponuota nosis": {
+      "system": "Kvėpavimas",
+      "goal": "Prižiūrėti nosies tamponus ir stebėti kraujavimą.",
+      "interventions": [
+        "Nosies tvarščio keitimas."
+      ],
+      "evaluation": "Kraujavimas sustabdytas, tamponai vietoje."
+    },
+    "Nedidelis kraujavimas iš nosies": {
+      "system": "Kvėpavimas",
+      "goal": "Stebėti kraujavimo sustojimą ir mokyti pacientą.",
+      "interventions": [
+        "AKS stebėjimas kraujavimui nestojant.",
+        "Pacientas apmokintas kaip prižiūrėti nosį kraujavimui sustojus."
+      ],
+      "evaluation": "Kraujavimas sustojo, pacientas žino, ką daryti kartojantis."
+    },
+    "NEWS2 0 – stabili būklė": {
+      "system": "Gyvybiniai rodikliai",
+      "goal": "Tęsti įprastą paciento stebėseną.",
+      "interventions": [
+        "Gyvybinius rodiklius vertinti pagal skyriaus tvarką.",
+        "Stebėti bendrą savijautą ir klinikinius pokyčius."
+      ],
+      "evaluation": "Būklė stabili, NEWS2 nekinta arba išlieka 0."
+    },
+    "NEWS2 1–4 – nedidelė klinikinė rizika": {
+      "system": "Gyvybiniai rodikliai",
+      "goal": "Anksti pastebėti galimą būklės blogėjimą.",
+      "interventions": [
+        "Pakartotinai vertinti gyvybinius rodiklius kas 4–6 val. arba pagal skyriaus tvarką.",
+        "Įvertinti bendrą paciento klinikinę būklę.",
+        "Informuoti gydytoją, jei būklė blogėja arba NEWS2 didėja."
+      ],
+      "evaluation": "Gyvybiniai rodikliai stabilizuojasi arba nepablogėja."
+    },
+    "NEWS2 ≥5 – vidutinė klinikinė rizika": {
+      "system": "Gyvybiniai rodikliai",
+      "goal": "Užtikrinti skubų būklės įvertinimą ir dažną stebėseną.",
+      "interventions": [
+        "Informuoti gydytoją.",
+        "Gyvybinius rodiklius vertinti dažnai pagal būklę.",
+        "Stebėti sąmonę, kvėpavimą, kraujotaką ir diurezę.",
+        "Pasirengti galimam paciento būklės blogėjimui."
+      ],
+      "evaluation": "Gydytojas informuotas, stebėsena suintensyvinta, paciento būklė kontroliuojama."
+    },
+    "NEWS2 ≥7 – didelė klinikinė rizika": {
+      "system": "Gyvybiniai rodikliai",
+      "goal": "Užtikrinti skubią pagalbą esant aukštai klinikinei rizikai.",
+      "interventions": [
+        "Skubiai informuoti gydytoją.",
+        "Užtikrinti nuolatinę arba labai dažną stebėseną pagal įstaigos tvarką.",
+        "Paruošti reikiamas priemones būklės stabilizavimui.",
+        "Vykdyti gydytojo nurodymus ir dokumentuoti pokyčius."
+      ],
+      "evaluation": "Pacientas įvertintas skubiai, priimti sprendimai dėl tolimesnės priežiūros."
+    },
+    "Pažemėjęs kraujo spaudimas": {
+      "system": "Širdies-kraujotaka",
+      "goal": "Stebėti ir stabilizuoti kraujospūdį.",
+      "interventions": [
+        "Patarta neskubėti keltis, pasėdėti nuleidus kojas prieš einant.",
+        "Stebėjimas dėl galimų griuvimų.",
+        "AKS matavimas po 1 val."
+      ],
+      "evaluation": "AKS normalizuojasi, griuvimų neįvyko."
+    },
+    "Padidėjęs kraujo spaudimas": {
+      "system": "Širdies-kraujotaka",
+      "goal": "Stebėti ir koreguoti padidėjusį kraujospūdį.",
+      "interventions": [
+        "AKS sekimas kas 4 val."
+      ],
+      "evaluation": "AKS mažėja arba išlieka tikslinėse ribose."
+    },
+    "Tachikardija": {
+      "system": "Širdies-kraujotaka",
+      "goal": "Nustatyti tachikardijos priežastį ir stebėti pulsą.",
+      "interventions": [
+        "Pulsas sekamas kas 4 val.",
+        "Įvertinti galimas priežastis (skausmas, karščiavimas, hipovolemija, hipoksija, nerimas).",
+        "AKS ir SpO₂ stebėjimas.",
+        "Jei pulsas ≥120/min ar yra simptomai – informuoti gydytoją."
+      ],
+      "evaluation": "Pulsas normalizuojasi, priežastis nustatyta ir šalinama."
+    },
+    "Bradikardija": {
+      "system": "Širdies-kraujotaka",
+      "goal": "Stebėti bradikardijos požymius ir kraujos cirkuliaciją.",
+      "interventions": [
+        "Pulsas sekamas kas 4 val.",
+        "AKS, sąmonės būklės ir perfuzijos stebėjimas.",
+        "Jei yra simptomai arba AKS žemas – informuoti gydytoją."
+      ],
+      "evaluation": "Pulsas normalizuojasi, hipoperfuzijos požymių nėra."
+    },
+    "Nepakankama mityba": {
+      "system": "Mityba",
+      "goal": "Pagerinti maisto suvartojimą ir mažinti mitybos nepakankamumo riziką.",
+      "interventions": [
+        "Vertinti apetitą ir suvartojamo maisto kiekį.",
+        "Registruoti, kiek procentų porcijos suvalgoma.",
+        "Užtikrinti pagalbą valgant.",
+        "Pasiūlyti mažesnes, dažnesnes porcijas pagal galimybes.",
+        "Stebėti kūno svorį pagal skyriaus tvarką.",
+        "Informuoti gydytoją ar dietologą, jei suvartojimas mažėja."
+      ],
+      "evaluation": "Maisto suvartojimas pagerėjo arba išlieka pakankamas, svoris stabilus."
+    },
+    "Mitybos nepakankamumo rizika": {
+      "system": "Mityba",
+      "goal": "Išvengti mitybos būklės blogėjimo.",
+      "interventions": [
+        "Atlikti mitybos rizikos vertinimą.",
+        "Stebėti apetitą, svorį ir suvartojamo maisto kiekį.",
+        "Užtikrinti tinkamą maisto konsistenciją.",
+        "Skatinti valgyti pagal paciento galimybes.",
+        "Pagal paskyrimą taikyti papildomą maitinimą."
+      ],
+      "evaluation": "Mitybos rizika nedidėja, pacientas gauna pakankamą mitybą."
+    },
+    "Sumažėjęs suvartojamo maisto kiekis": {
+      "system": "Mityba",
+      "goal": "Padidinti maisto suvartojimą.",
+      "interventions": [
+        "Įvertinti ir dokumentuoti valgymo metu suvartotą maisto kiekį.",
+        "Pasiūlyti užkandžius tarp valgymų; pagal paskyrimą — papildai / gėrimai su kalorijomis.",
+        "Įvertinti pykinimą/skausmą prieš valgį; taikyti priemones pagal paskyrimą (antiemetikai, nuskausminimas).",
+        "Prieš valgį patogi padėtis; pagalba maitinantis.",
+        "Informuoti gydytoją, jei suvalgo <50–75 % kelių valgymų metu iš eilės.",
+        "Stebėti skysčių balansą ir (jei taikoma) kūno masę periodiškai."
+      ],
+      "evaluation": "Maisto suvartojimas padidėjo, svoris stabilus."
+    },
+    "Rijimo sutrikimas / aspiracijos rizika": {
+      "system": "Mityba",
+      "goal": "Užtikrinti saugų maitinimą ir išvengti aspiracijos.",
+      "interventions": [
+        "Stebėjimas dėl aspiracijos.",
+        "Pagalba valgant.",
+        "Maisto tirštinimas prireikus pagal gydytojo paskyrimą.",
+        "Maitinimo metu stebėti springimą, kosulį, balso pokyčius.",
+        "Po maitinimo išlaikyti pakeltą galvūgalį."
+      ],
+      "evaluation": "Pacientas maitinasi be springimo, aspiracijos požymių nėra."
+    },
+    "Mityba per zondą (NG)": {
+      "system": "Mityba",
+      "goal": "Užtikrinti saugų maitinimą per nazogastrinį zondą.",
+      "interventions": [
+        "Zondo padėties patikra pagal įstaigos protokolą.",
+        "Galvūgalis ≥30–45° maitinimo metu ir 30–60 min po.",
+        "Zondo praplovimas prieš ir po maitinimo bei vaistų.",
+        "Nosies ir odos prie zondo priežiūra, fiksacijos patikra.",
+        "Stebėti dėl aspiracijos, pykinimo, pilvo pūtimo."
+      ],
+      "evaluation": "Zondas funkcionuoja, maitinimas toleruojamas, aspiracijos požymių nėra."
+    },
+    "Mityba per PEG": {
+      "system": "Mityba",
+      "goal": "Užtikrinti saugų maitinimą per PEG ir stomos priežiūrą.",
+      "interventions": [
+        "PEG priežiūra pagal įstaigos protokolą.",
+        "Galvūgalis ≥30–45° maitinimo metu ir 30–60 min po.",
+        "PEG praplovimas prieš ir po maitinimo bei vaistų.",
+        "Stebėti dėl aspiracijos, pykinimo, pilvo pūtimo.",
+        "Stebėti dėl paraudimo, sekrecijos, skausmo ar infekcijos požymių."
+      ],
+      "evaluation": "PEG funkcionuoja, maitinimas toleruojamas, stomos komplikacijų nėra."
+    },
+    "Dehidratacijos rizika": {
+      "system": "Mityba",
+      "goal": "Užtikrinti pakankamą skysčių balansą.",
+      "interventions": [
+        "Vertinti išgeriamų skysčių kiekį.",
+        "Skatinti gerti, jei nėra kontraindikacijų.",
+        "Stebėti gleivines, odos turgorą, diurezę.",
+        "Registruoti skysčių balansą pagal poreikį.",
+        "Informuoti gydytoją esant dehidratacijos požymiams."
+      ],
+      "evaluation": "Skysčių balansas pakankamas, dehidratacijos požymių nėra."
+    },
+    "Šlapimo kateteris": {
+      "system": "Šalinimas",
+      "goal": "Išvengti kateterio sukeltų komplikacijų ir infekcijos.",
+      "interventions": [
+        "Palaikomas uždaras drenavimo sistemos vientisumas.",
+        "Šlapimo maišas visada žemiau šlapimo pūslės lygio; pakabintas prie paciento lovos.",
+        "Diurezės apskaita (ml/val., ml/24 h) ir šlapimo pobūdžio vertinimas.",
+        "Infekcijos profilaktika – stebėti T°, infekcijos požymius, pokyčius šlapimo spalvoje, drumzlėtume.",
+        "Paciento mokymas – tinkamas maišo ištuštinimas ir sistemos apsauga nuo tempimo."
+      ],
+      "evaluation": "Kateteris funkcionuoja, šlapimo nutekėjimas laisvas, infekcijos požymių nėra."
+    },
+    "Šlapimo nelaikymas": {
+      "system": "Šalinimas",
+      "goal": "Išlaikyti odos vientisumą ir užtikrinti higieną.",
+      "interventions": [
+        "Keisti sauskelnes pagal poreikį.",
+        "Užtikrinti tarpvietės higieną.",
+        "Naudoti odos apsaugos priemones.",
+        "Stebėti odą dėl paraudimo ar iššutimo.",
+        "Sudaryti galimybes šlapintis pagal režimą, jei įmanoma."
+      ],
+      "evaluation": "Oda švari, sausa, iššutimų nėra."
+    },
+    "Išmatų nelaikymas": {
+      "system": "Šalinimas",
+      "goal": "Išlaikyti odos vientisumą ir paciento komfortą.",
+      "interventions": [
+        "Užtikrinti savalaikį sauskelnių keitimą.",
+        "Prižiūrėti tarpvietės odą.",
+        "Naudoti apsauginius kremus.",
+        "Stebėti tuštinimosi dažnį ir pobūdį.",
+        "Informuoti gydytoją esant viduriavimui ar odos pažeidimams."
+      ],
+      "evaluation": "Odos pažeidimų nėra, pacientas jaučiasi komfortiškiau."
+    },
+    "Vidurių užkietėjimas": {
+      "system": "Šalinimas",
+      "goal": "Atkurti reguliarų tuštinimąsi.",
+      "interventions": [
+        "Stebėti tuštinimąsi.",
+        "Skysčių/aktyvumo skatinimas pagal būklę.",
+        "Priemonių taikymas pagal paskyrimą.",
+        "Stebėti pilvo pūtimą ir skausmą."
+      ],
+      "evaluation": "Tuštinimasis reguliarėja, pilvo diskomfortas mažėja."
+    },
+    "Viduriavimas": {
+      "system": "Šalinimas",
+      "goal": "Išvengti dehidratacijos ir odos pažeidimų.",
+      "interventions": [
+        "Stebėti tuštinimąsi.",
+        "Odos priežiūra tarpvietėje.",
+        "Skysčių balanso stebėjimas.",
+        "Stebėti temperatūrą ir infekcijos požymius.",
+        "Informuoti gydytoją būklei blogėjant."
+      ],
+      "evaluation": "Viduriavimo epizodų mažėja, dehidratacijos ir odos pažeidimų nėra."
+    },
+    "Sutrikęs mobilumas": {
+      "system": "Judėjimas",
+      "goal": "Pagerinti arba palaikyti paciento mobilumą pagal galimybes.",
+      "interventions": [
+        "Įvertinti reikalingą pagalbos lygį.",
+        "Padėti persikelti ir judėti saugiai.",
+        "Naudoti pagalbines priemones.",
+        "Skatinti savarankiškumą pagal paciento galimybes.",
+        "Bendradarbiauti su kineziterapeutu."
+      ],
+      "evaluation": "Pacientas juda saugiau, pagalbos poreikis aiškiai nustatytas."
+    },
+    "Judėjimas su pagalba": {
+      "system": "Judėjimas",
+      "goal": "Užtikrinti saugų judėjimą su pagalba.",
+      "interventions": [
+        "Nustatomas individualus pagalbos lygis (1–2 asmenys, vaikštynė/ramentai).",
+        "Kėlimasis lėtai – ortostatinės hipotenzijos profilaktika.",
+        "Saugi aplinka – lova nuleista, stabdžiai užfiksuoti, skambutis pasiekiamas.",
+        "Patarta dėvėti neslystančias kojines / tinkamą avalynę.",
+        "Pirmo atsistojimo/persikėlimo metu – slaugytojo priežiūra."
+      ],
+      "evaluation": "Pacientas saugiai juda su pagalba, griuvimų neįvyko."
+    },
+    "Visiškas priklausomumas nuo slaugos": {
+      "system": "Judėjimas",
+      "goal": "Užtikrinti visapusišką paciento priežiūrą ir komplikacijų profilaktiką.",
+      "interventions": [
+        "Reguliariai keisti kūno padėtį.",
+        "Užtikrinti higieną ir odos priežiūrą.",
+        "Padėti maitintis arba maitinti.",
+        "Užtikrinti komfortą ir saugumą.",
+        "Stebėti dėl pragulų, kontraktūrų ir infekcijos požymių."
+      ],
+      "evaluation": "Paciento pagrindiniai poreikiai užtikrinti, komplikacijų neatsirado."
+    },
+    "Kontraktūrų rizika": {
+      "system": "Judėjimas",
+      "goal": "Išvengti sąnarių sustingimo ir palaikyti judesių amplitudę.",
+      "interventions": [
+        "Keisti kūno padėtį.",
+        "Atlikti pasyvius judesius pagal galimybes.",
+        "Skatinti aktyvius judesius.",
+        "Naudoti pozicionavimo priemones.",
+        "Bendradarbiauti su kineziterapeutu."
+      ],
+      "evaluation": "Judesių amplitudė palaikoma, kontraktūrų požymių nėra arba jos neprogresuoja."
+    },
+    "Rizika griuvimui dėl pagalbos poreikio": {
+      "system": "Judėjimas",
+      "goal": "Išvengti paciento griuvimo ir traumų.",
+      "interventions": [
+        "Griuvimų rizikos įvertinimas; žymėjimas.",
+        "Aplinka be kliūčių, naktinis apšvietimas.",
+        "Skambutis pasiekiamas; pacientas instruktuojamas kviesti pagalbą.",
+        "WC palyda, pagalbinės priemonės.",
+        "Lovos/vežimėlio stabdžiai užfiksuoti prieš persodinant.",
+        "Reguliari stebėsena ir dokumentavimas."
+      ],
+      "evaluation": "Griuvimų neįvyko, pacientas juda prižiūrimas pagal poreikį."
+    },
+    "Rizika griuvimui dėl galvos svaigimo": {
+      "system": "Judėjimas",
+      "goal": "Išvengti griuvimo dėl galvos svaigimo.",
+      "interventions": [
+        "AKS sekimas.",
+        "Griuvimų rizikos įvertinimas; žymėjimas.",
+        "Aplinka be kliūčių, naktinis apšvietimas.",
+        "Skambutis pasiekiamas; pacientas instruktuojamas kviesti pagalbą.",
+        "WC palyda, pagalbinės priemonės.",
+        "Lovos/vežimėlio stabdžiai užfiksuoti prieš persodinant.",
+        "Reguliari stebėsena ir dokumentavimas."
+      ],
+      "evaluation": "Griuvimų neįvyko, svaigimas stebimas ir dokumentuojamas."
+    },
+    "Vidutinė griuvimų rizika": {
+      "system": "Judėjimas",
+      "goal": "Sumažinti griuvimo riziką.",
+      "interventions": [
+        "Įvertinti griuvimų riziką (Morse skalė).",
+        "Užtikrinti saugią aplinką be kliūčių.",
+        "Lovą laikyti žemiausioje padėtyje.",
+        "Užtikrinti, kad iškvietimo mygtukas būtų pasiekiamas.",
+        "Naudoti neslystančią avalynę ar kojines."
+      ],
+      "evaluation": "Griuvimų neįvyko, rizikos veiksniai mažinami."
+    },
+    "Didelė griuvimų rizika": {
+      "system": "Judėjimas",
+      "goal": "Intensyviai apsaugoti pacientą nuo griuvimo.",
+      "interventions": [
+        "Griuvimų rizikos įvertinimas; žymėjimas pagal įstaigos tvarką.",
+        "Lovą laikyti žemiausioje padėtyje, šoniniai turėklai.",
+        "Nuolatinė stebėsena; skambutis pasiekiamas.",
+        "Padėti keliantis, einant ir einant į tualetą.",
+        "Naudoti neslystančią avalynę ar kojines.",
+        "Dokumentuoti ir informuoti gydytoją."
+      ],
+      "evaluation": "Griuvimų neįvyko, maksimali apsauga užtikrinta."
+    },
+    "Rizika praguloms dėl lovos režimo": {
+      "system": "Oda",
+      "goal": "Išvengti pragulų atsiradimo.",
+      "interventions": [
+        "Odos būklės stebėjimas.",
+        "Pozicionavimas pagal būklę.",
+        "Pragulų profilaktika."
+      ],
+      "evaluation": "Pragulų neatsirado, oda vientisa."
+    },
+    "Didelė pragulų rizika": {
+      "system": "Oda",
+      "goal": "Išvengti naujų pragulų atsiradimo ir išlaikyti odos vientisumą.",
+      "interventions": [
+        "Vertinti odos būklę kiekvienos pamainos metu.",
+        "Keisti kūno padėtį kas 2–3 val. arba pagal būklę.",
+        "Naudoti pozicionavimo priemones.",
+        "Mažinti spaudimą kulnų, kryžkaulio ir kitose rizikos vietose.",
+        "Užtikrinti odos švarą ir sausumą.",
+        "Stebėti mitybos ir skysčių būklę."
+      ],
+      "evaluation": "Naujų pragulų neatsirado, oda išlieka vientisa."
+    },
+    "Pragulos": {
+      "system": "Oda",
+      "goal": "Gerinti pragulos būklę ir išvengti infekcijos.",
+      "interventions": [
+        "Odos būklės stebėjimas.",
+        "Pozicionavimas pagal būklę kas 2–3 valandas.",
+        "Pagalbinės priemonės pozicionavimui.",
+        "Pragulos perrišimas pagal žaizdų priežiūros planą.",
+        "Stebėti infekcijos požymius.",
+        "Dokumentuoti pragulos pokyčius."
+      ],
+      "evaluation": "Pragulos būklė neblogėja arba gerėja, infekcijos požymių nėra."
+    },
+    "Gulimas režimas ir pragulos": {
+      "system": "Oda",
+      "goal": "Kompleksiškai spręsti pragulų problemą lovos režimo sąlygomis.",
+      "interventions": [
+        "Odos būklės stebėjimas.",
+        "Pozicionavimas pagal būklę kas 2–3 valandas.",
+        "Pagalbinės priemonės paciento pozicionavimui.",
+        "Pragulos perrišimas pagal žaizdų priežiūros planą.",
+        "Naujų pragulų atsiradimo profilaktika."
+      ],
+      "evaluation": "Pragulos būklė neblogėja, naujų neatsirado."
+    },
+    "Odos vientisumo pažeidimas (žaizda)": {
+      "system": "Oda",
+      "goal": "Skatinti žaizdos gijimą ir išvengti infekcijos.",
+      "interventions": [
+        "Žaizdos perrišimas.",
+        "Stebėti infekcijos požymius.",
+        "Dokumentuoti gijimo eigą."
+      ],
+      "evaluation": "Žaizda gyja, sekrecija mažėja, infekcijos požymių nėra."
+    },
+    "Odos vientisumo pažeidimo rizika": {
+      "system": "Oda",
+      "goal": "Išvengti odos pažeidimų ir iššutimų.",
+      "interventions": [
+        "Užtikrinti odos švarą ir sausumą.",
+        "Naudoti odos apsaugos priemones.",
+        "Stebėti rizikos vietas.",
+        "Keisti sauskelnes ir drėgnus rūbus pagal poreikį.",
+        "Vengti odos trynimo ir spaudimo."
+      ],
+      "evaluation": "Odos pažeidimų neatsirado, paraudimai mažėja."
+    },
+    "Sutrikęs miegas": {
+      "system": "Miegas",
+      "goal": "Pagerinti miego kokybę ir poilsį.",
+      "interventions": [
+        "Miego ir poilsio režimo vertinimas.",
+        "Aplinkos veiksnių korekcija (triukšmas, šviesa, temperatūra).",
+        "Skausmo vertinimas prieš miegą.",
+        "Nefarmakologinių miego gerinimo priemonių taikymas.",
+        "Paciento savijautos stebėjimas ryte."
+      ],
+      "evaluation": "Miego kokybė pagerėjo, pacientas pailsėjęs."
+    },
+    "Padidėjusi temperatūra": {
+      "system": "Temperatūra",
+      "goal": "Stebėti karščiavimą ir taikyti atitinkamas priemones.",
+      "interventions": [
+        "Temperatūros stebėjimas.",
+        "Informuoti gydytoją esant karščiavimui ≥38°C.",
+        "Taikyti antipiretines priemones pagal paskyrimą."
+      ],
+      "evaluation": "Temperatūra normalizuojasi arba kontroliuojama."
+    },
+    "Hipotermija": {
+      "system": "Temperatūra",
+      "goal": "Atkurti normalią kūno temperatūrą.",
+      "interventions": [
+        "Šilumos palaikymas.",
+        "Temperatūros stebėjimas.",
+        "Informuoti gydytoją."
+      ],
+      "evaluation": "Kūno temperatūra normalizuojasi."
+    },
+    "Nedidelis skausmas (1–3/10)": {
+      "system": "Skausmas",
+      "goal": "Sumažinti skausmą nefarmakologinėmis priemonėmis.",
+      "interventions": [
+        "Nefarmakologinis skausmo malšinimas.",
+        "Pacientui norint – farmakologinis nuskausminimas."
+      ],
+      "evaluation": "Skausmas sumažėjo iki toleruojamo lygio."
+    },
+    "Vidutinis skausmas (4–6/10)": {
+      "system": "Skausmas",
+      "goal": "Efektyviai malšinti vidutinį skausmą.",
+      "interventions": [
+        "Savalaikis nuskausminimas pagal gydytojo paskyrimą.",
+        "Pakartotinis skausmo matavimas po 30 min. po vaistų suleidimo/sudavimo."
+      ],
+      "evaluation": "Skausmas sumažėjo, NRS <4."
+    },
+    "Didelis skausmas (7–10/10)": {
+      "system": "Skausmas",
+      "goal": "Skubiai malšinti stiprų skausmą.",
+      "interventions": [
+        "Skubus nuskausminimas pagal gydytojo paskyrimą.",
+        "Pakartotinis skausmo matavimas po 15 min."
+      ],
+      "evaluation": "Skausmas sumažėjo, NRS <7."
+    },
+    "Kraujavimo rizika": {
+      "system": "Rizikos",
+      "goal": "Stebėti galimo kraujavimo požymius.",
+      "interventions": [
+        "Stebėjimas dėl galimo kraujavimo.",
+        "AKS sekimas."
+      ],
+      "evaluation": "Kraujavimo požymių nėra arba jie pastebėti laiku."
+    },
+    "Nerimas / neramus": {
+      "system": "Psichinė būklė",
+      "goal": "Sumažinti paciento nerimą ir didinti saugumo jausmą.",
+      "interventions": [
+        "Bendrauti ramiai, aiškiai ir pagarbiai.",
+        "Paaiškinti atliekamas procedūras.",
+        "Užtikrinti saugią aplinką.",
+        "Stebėti nerimo požymius.",
+        "Informuoti gydytoją, jei nerimas stiprėja ar trukdo priežiūrai."
+      ],
+      "evaluation": "Pacientas ramesnis, bendradarbiavimas pagerėjo."
+    },
+    "Sumišimas": {
+      "system": "Psichinė būklė",
+      "goal": "Užtikrinti saugumą ir padėti pacientui orientuotis.",
+      "interventions": [
+        "Dažnai orientuoti pacientą laike, vietoje ir situacijoje.",
+        "Užtikrinti saugią aplinką.",
+        "Stebėti elgesio pokyčius.",
+        "Užtikrinti akinių, klausos aparato ar kitų pagalbinių priemonių naudojimą, jei turi.",
+        "Informuoti gydytoją apie naujai atsiradusį sumišimą."
+      ],
+      "evaluation": "Pacientas saugus, sumišimo požymiai mažėja arba neprogresuoja."
+    },
+    "Demencija": {
+      "system": "Psichinė būklė",
+      "goal": "Palaikyti paciento saugumą ir kasdienę funkciją.",
+      "interventions": [
+        "Laikytis pastovios dienotvarkės.",
+        "Bendrauti trumpais ir aiškiais sakiniais.",
+        "Padėti atlikti kasdienes veiklas.",
+        "Stebėti elgesio pokyčius.",
+        "Bendradarbiauti su artimaisiais, jei aktualu."
+      ],
+      "evaluation": "Pacientas saugus, priežiūra vyksta pagal individualius poreikius."
+    },
+    "Agresyvus elgesys": {
+      "system": "Psichinė būklė",
+      "goal": "Užtikrinti paciento ir aplinkinių saugumą.",
+      "interventions": [
+        "Vertinti agresijos priežastis.",
+        "Bendrauti ramiu tonu, vengti provokuojančių veiksmų.",
+        "Pašalinti pavojingus daiktus iš aplinkos.",
+        "Kviesti pagalbą esant grėsmei.",
+        "Informuoti gydytoją ir dokumentuoti epizodą."
+      ],
+      "evaluation": "Agresijos epizodai sumažėjo arba kontroliuojami, saugumas užtikrintas."
+    },
+    "Bendradarbiavimo stoka": {
+      "system": "Psichinė būklė",
+      "goal": "Gerinti paciento bendradarbiavimą su slaugos komanda.",
+      "interventions": [
+        "Aiškiai informuoti pacientą apie priežiūros tikslus ir procedūras.",
+        "Paaiškinti procedūrų būtinybę pacientui suprantama kalba.",
+        "Sudaryti saugią ir pagarbią aplinką.",
+        "Stebėti ir dokumentuoti bendradarbiavimo pokyčius.",
+        "Informuoti gydytoją, jei bendradarbiavimo stoka trukdo gydymui."
+      ],
+      "evaluation": "Bendradarbiavimas pagerėjo, priežiūra vykdoma efektyviai."
+    },
+    "Taikoma fizinė fiksacija": {
+      "system": "Fiksacija",
+      "goal": "Užtikrinti paciento saugumą ir išvengti fiksacijos komplikacijų.",
+      "interventions": [
+        "Taikoma fizinio suvaržymo priemonės, imobilizuota galūnė atlaisvinama kas 1,5 val.",
+        "Stebima oda po fiksavimo priemone, įvertinami spaudimo/paraudimo požymiai.",
+        "Stebima periferinė kraujotaka (spalva, temperatūra, jutimai).",
+        "Stebima paciento emocinė būklė ir stengiamasi sumažinti nerimą.",
+        "Reguliariai vertinti fiksacijos tęstinumo būtinybę.",
+        "Suvaržymo taikymas dokumentuojamas."
+      ],
+      "evaluation": "Fiksacijos komplikacijų nėra, paciento saugumas užtikrintas, tęstinumo poreikis pervertintas."
+    },
+    "Kateterių ar zondų išsitraukimo rizika": {
+      "system": "Fiksacija",
+      "goal": "Išvengti medicininių priemonių išsitraukimo.",
+      "interventions": [
+        "Stebėti paciento elgesį ir neramumą.",
+        "Užtikrinti tinkamą kateterių, zondų ir vamzdelių fiksaciją.",
+        "Paaiškinti pacientui priemonių paskirtį pagal jo supratimo galimybes.",
+        "Taikyti alternatyvias saugumo priemones prieš fizinę fiksaciją, jei įmanoma.",
+        "Informuoti gydytoją apie pasikartojančią riziką."
+      ],
+      "evaluation": "Kateteriai ir zondai išlieka vietoje, pacientas saugus."
+    },
+    "Savęs sužalojimo rizika": {
+      "system": "Fiksacija",
+      "goal": "Sumažinti paciento savęs sužalojimo tikimybę.",
+      "interventions": [
+        "Užtikrinti saugią aplinką.",
+        "Stebėti paciento elgesį.",
+        "Pašalinti potencialiai pavojingus daiktus.",
+        "Bendrauti raminančiai.",
+        "Informuoti gydytoją apie savęs žalojimo riziką."
+      ],
+      "evaluation": "Savęs sužalojimo epizodų nėra, pacientas stebimas pagal poreikį."
+    }
+  },
+  "dietPlan": {
+    "P1": [],
+    "P4": [],
+    "PTM": ["Stebima, kaip pavyksta nuryti maistą, bei dėl aspiracijos rizikos."],
+    "TM": ["Stebima, kaip pavyksta nuryti maistą, bei dėl aspiracijos rizikos."],
+    "SM": ["Pacientas maitinamas mažais boliusais, lėtai; stebima dėl aspiracijos rizikos."],
+    "CD": ["Sekama glikemija."],
+    "PTM-CD": ["Stebima, kaip pavyksta nuryti maistą, bei dėl aspiracijos rizikos; sekama glikemija."],
+    "Na": ["Stebima dėl edemų, pastebėjus – AKS ir skysčių sekimas."],
+    "Sk(padid.)": ["Stebima dėl pilvo pūtimo ir tuštinimosi."],
+    "Sk(maž.)": ["Stebima dėl pilvo pūtimo ir tuštinimosi."],
+    "B": [],
+    "Lac": [],
+    "NPB": ["Pacientas nieko nevalgo ir negeria, kol kitaip nenurodė gydytojas."]
+  },
+  "dischargeTemplates": [
+    {
+      "id": "gerklu_mikroskopine",
+      "name": "Po mikroskopinės gerklų operacijos (balso klosčių dariniai)",
+      "items": [
+        "Tylos režimas 5 d.",
+        "Balsą tausojantis režimas 2 sav. (nekalbėti pakeltu tonu, nešnibždėti, nedainuoti).",
+        "Namų režimas 2 sav.; vengti kelionių, dūmų, dulkių, karštų patalpų.",
+        "Riboti fizinį krūvį 2 sav., nekelti sunkių daiktų.",
+        "Vengti pirčių, karštų vonių, baseinų, soliariumų 2 sav.",
+        "Ryte ir vakare matuoti temperatūrą."
+      ]
+    },
+    {
+      "id": "konchoplastika",
+      "name": "Po nosies kriauklių operacijos (konchoplastika)",
+      "items": [
+        "Ryte ir vakare matuoti temperatūrą; ≥38°C – kreiptis į šeimos gydytoją (nevartoti aspirino).",
+        "Nepūsti nosies ~1 sav.",
+        "Namų režimas 2 sav.; vengti kelionių, dūmų, dulkių, karštų patalpų.",
+        "Riboti fizinį krūvį 2 sav., nekelti sunkių daiktų; vengti kontaktų 1 mėn.",
+        "Vengti pirčių, karštų vonių, baseinų, soliariumų 2 sav.",
+        "Plauti ir drėkinti nosį kaip nurodė gydytojas.",
+        "Užsitęsus karščiavimui ar prasidėjus gausiam kraujavimui – skubi pagalba."
+      ]
+    },
+    {
+      "id": "nosikauliu_luziai_rinoseptoplastika",
+      "name": "Po nosikaulių lūžių atstatymo / po rinoseptoplastikos",
+      "items": [
+        "Ryte ir vakare matuoti temperatūrą; ≥38°C – kreiptis į šeimos gydytoją (nevartoti aspirino).",
+        "Nepūsti nosies ~1 sav.",
+        "Namų režimas 2 sav. (vengti kelionių, dūmų, dulkių, karštų patalpų).",
+        "Riboti fizinį krūvį 2 sav., nekelti sunkių daiktų.",
+        "Jei yra rizika užsigauti nosį – vengti kontaktų 1–1,5 mėn.",
+        "Vengti pirčių, karštų vonių, baseinų, soliariumų 2 sav.",
+        "Jei buvo gipsas po lūžių atstatymo – nešioti iki 10 d.; sušlapus nebedėti atgal.",
+        "Plauti ir drėkinti nosį kaip nurodė gydytojas.",
+        "Užsitęsus karščiavimui ar prasidėjus gausiam kraujavimui – kreiptis į skubią pagalbą."
+      ]
+    },
+    {
+      "id": "septoplastika_funkcine_rinoplastika",
+      "name": "Po septoplastikos / funkcinės rinoplastikos",
+      "items": [
+        "Ryte ir vakare matuoti temperatūrą; ≥38°C – kreiptis į šeimos gydytoją (nevartoti aspirino).",
+        "Nepūsti nosies ~1 sav.",
+        "Galimas nosies užgulimas pirmomis dienomis – tai normalu.",
+        "Namų režimas 2 sav. (vengti kelionių, dūmų, dulkių, karštų patalpų).",
+        "Riboti fizinį krūvį 2 sav., nekelti sunkių daiktų.",
+        "Vengti kontaktų / smūgio į nosį 1 mėn.",
+        "Vengti pirčių, karštų vonių, baseinų, soliariumų 2 sav.",
+        "Plauti ir drėkinti nosį kaip nurodė gydytojas.",
+        "Užsitęsus karščiavimui ar prasidėjus gausiam kraujavimui – skubi pagalba."
+      ]
+    },
+    {
+      "id": "tonzilektomija",
+      "name": "Po tonzilių pašalinimo",
+      "items": [
+        "Skausmui – Paracetamolis arba Ibuprofenas 2–3 k./d. (nevartoti Aspirino, Ketanovo).",
+        "Galimas karščiavimas iki 37,5°C ~2 sav.; ≥38°C ilgiau nei 3 d. – kreiptis į šeimos gydytoją.",
+        "2 sav. vengti karšto, aštraus, rūgštaus, kieto, traškaus maisto.",
+        "Rekomenduojamas skystas/trintas, baltymingas maistas 2 sav.",
+        "Gerti ≥125 ml kas 2 val. (negazuoti gėrimai).",
+        "2 sav. nesimaudyti karštoje vonioje, neplauti galvos (galima dušas, jei gerai jaučiasi).",
+        "Dantis valyti švelniai, su mažai pastos; neskalauti burnos.",
+        "2 sav. riboti fizinį krūvį; nekelti sunkių daiktų; vengti sporto, pirčių, baseinų, soliariumų.",
+        "10 d. vengti krenkštimo/kosėjimo.",
+        "Jei atsiranda kraujavimas – šaldyti kaklo sritį, laikyti galvą palenktą į priekį; jei kraujo ≥15 ml ar „kavos tirščių" vėmimas – skubi pagalba.",
+        "Vaikui – rekomenduojama suaugusiojo priežiūra naktį 2 sav."
+      ]
+    },
+    {
+      "id": "adenoidektomija",
+      "name": "Po adenoidų pašalinimo",
+      "items": [
+        "Galimas nedidelis gerklės skausmas kelias dienas; skausmui – Paracetamolis arba Ibuprofenas (nevartoti Aspirino, Ketanovo).",
+        "Galimas karščiavimas iki 37,5°C ~2 sav.; ≥38°C ilgiau nei 3 d. – kreiptis į šeimos gydytoją.",
+        "Pirmas 3 paras vengti karšto, aštraus, rūgštaus, kieto, traškaus maisto.",
+        "Rekomenduojamas skystas/trintas maistas 3 paras.",
+        "Gerti ≥125 ml kas 2 val. (negazuoti gėrimai).",
+        "1 sav. nesimaudyti karštoje vonioje, neplauti galvos (galima dušas, jei gerai jaučiasi).",
+        "Dantis valyti švelniai, su mažai pastos; neskalauti burnos.",
+        "2 sav. riboti fizinį krūvį; vengti sporto, pirčių, baseinų, soliariumų.",
+        "10 d. vengti krenkštimo/kosėjimo.",
+        "Jei prasideda kraujavimas iš nosies ar su seilėmis – šaldyti kaktos srityje, galvą laikyti palenktą į priekį; jei kraujo ≥15 ml – skubi pagalba.",
+        "Vaikui – rekomenduojama suaugusiojo priežiūra naktį 2 sav."
+      ]
+    },
+    {
+      "id": "tonziles_adenoidai_bendra",
+      "name": "Bendra po tonzilių / adenoidų pašalinimo",
+      "items": [
+        "Skausmui – Paracetamolis arba Ibuprofenas 2–3 k./d. (nevartoti Aspirino, Ketanovo).",
+        "Galimas karščiavimas iki 37,5°C ~2 sav.; ≥38°C ilgiau nei 3 d. – kreiptis į šeimos gydytoją.",
+        "2 sav. vengti karšto, aštraus, rūgštaus, kieto, traškaus maisto.",
+        "Rekomenduojamas skystas/trintas maistas (ypač pirmas dienas).",
+        "Gerti ≥125 ml kas 2 val. (negazuoti gėrimai).",
+        "1–2 sav. nesimaudyti karštoje vonioje, neplauti galvos (galima dušas, jei gerai jaučiasi).",
+        "Dantis valyti švelniai; neskalauti burnos.",
+        "2 sav. riboti fizinį krūvį; nekelti sunkių daiktų; vengti sporto, pirčių, baseinų, soliariumų.",
+        "10 d. vengti krenkštimo/kosėjimo.",
+        "Jei atsiranda reikšmingas kraujavimas (≥15 ml) ar „kavos tirščių" vėmimas – skubi pagalba.",
+        "Vaikui – rekomenduojama suaugusiojo priežiūra naktį 2 sav."
+      ]
+    },
+    {
+      "id": "tracheostoma_trumpai",
+      "name": "Tracheostoma – pagrindinės rekomendacijos (trumpai)",
+      "items": [
+        "Tracheostominį vamzdelį keisti 1 k./parą arba kaip nurodė gydytojas.",
+        "Keisti nedelsiant, jei atsiranda užsikimšimo požymių (dusulys, triukšmingas kvėpavimas). Laikytis rankų higienos.",
+        "Kasdien apžiūrėti ir nuplauti odą aplink stomą; gerai nusausinti.",
+        "~1 mėn. dėti tvarstį po vamzdeliu; keisti, kai susitepa.",
+        "Vamzdelis turi laikytis tvirtai, bet nespausti kaklo (2 pirštai).",
+        "Susitepusius raištelius pakeisti.",
+        "Tracheostomą visada pridengti švaria marle / filtru.",
+        "Galima drėkinti įkvepiamą orą (drėgna marlė, fiziologinis tirpalas – jei paskirta).",
+        "Maudantis saugoti, kad vanduo nepatektų į vamzdelį.",
+        "Turėti atsarginius vamzdelius (jei paskirta).",
+        "Jei vamzdelis užsikimšo – bandyti atkosėti sėdint, pasilenkus į priekį; jei nepavyksta – skubi pagalba.",
+        "Į gydytoją kreiptis, jei pasirodė kraujas iš tracheostomos; atsirado paraudimas/patinimas aplink stomą; pakito sekretas ar atsirado blogas kvapas; prasidėjo karščiavimas; didėjantis dusulys."
+      ]
+    },
+    {
+      "id": "zaizda_isorine_bendra",
+      "name": "Bendros rekomendacijos po operacijų su išorine žaizda",
+      "items": [
+        "Tvarstį laikyti švarų ir sausą; keisti kasdien ar susitepus.",
+        "Naudoti gydytojo ar vaistininko rekomenduotą antiseptiką.",
+        "Nešlapinti 24–48 val.; vėliau trumpas dušas be trynimo.",
+        "Nemirkyti žaizdos 2 sav.",
+        "Neliesti nešvariomis rankomis, nekrapštyti šašo.",
+        "Riboti fizinį krūvį 7–14 d.",
+        "Kreiptis į gydytoją esant paraudimui, pūliavimui ar karščiavimas ≥38°C."
+      ]
+    },
+    {
+      "id": "uzausio_pjuvis",
+      "name": "Po operacijos su užausio pjūviu",
+      "items": [
+        "Tvarstį laikyti sausą; keisti kasdien ar susitepus.",
+        "Naudoti gydytojo ar vaistininko rekomenduotą antiseptiką.",
+        "Nešlapinti 24–48 val.; neplauti galvos.",
+        "Žaizdos nemirkyti 2 sav.",
+        "Vengti spaudimo (ausinės, akiniai, kepurės).",
+        "Miegoti ant priešingos pusės 7–10 d.",
+        "Saugoti nuo saulės 1–2 mėn.",
+        "Riboti fizinį krūvį 7–14 d.",
+        "Skubiai kreiptis, jei paraudimas, pūliavimas, žaizdos prasiskyrimas ar karščiavimas ≥38°C."
+      ]
+    },
+    {
+      "id": "kaklo_pjuvis",
+      "name": "Po operacijos su kaklo pjūviu",
+      "items": [
+        "Tvarstį laikyti sausą; keisti kasdien.",
+        "Naudoti gydytojo ar vaistininko rekomenduotą antiseptiką.",
+        "Nešlapinti 24–48 val.",
+        "Žaizdos nemirkyti 2 sav.",
+        "Vengti spaudimo (aptemptos apykaklės, šalikai).",
+        "Vengti staigių kaklo judesių 7–10 d.",
+        "Saugoti nuo saulės 1–2 mėn.",
+        "Riboti fizinį krūvį 7–14 d.",
+        "Skubiai kreiptis, jei paraudimas, pūliavimas, žaizdos prasiskyrimas ar karščiavimas ≥38°C."
+      ]
+    },
+    {
+      "id": "veido_zaizda",
+      "name": "Po operacijos su žaizda veido srityje",
+      "items": [
+        "Tvarstį laikyti sausą; keisti kasdien.",
+        "Nešlapinti 24–48 val.",
+        "Naudoti gydytojo ar vaistininko rekomenduotą antiseptiką.",
+        "Žaizdos nemirkyti 2 sav.",
+        "Neliesti žaizdos nešvariomis rankomis.",
+        "Nekrapštyti šašo, nenuplėšti pleistrų.",
+        "Vengti spaudimo ir tempimo žaizdos srityje.",
+        "Vengti makiažo, kremų, šveitiklių iki leidimo.",
+        "Saugoti nuo saulės 1–2 mėn. (vėliau – SPF 50+).",
+        "Riboti fizinį krūvį 7–14 d.",
+        "Skubiai kreiptis, jei paraudimas, pūliavimas, žaizdos prasiskyrimas ar karščiavimas ≥38°C."
+      ]
+    }
+  ]
+}
+;
