@@ -36,18 +36,6 @@
         <label><input type="checkbox" id="bendradarbiauja" checked> Bendradarbiauja</label>
       </div>
       <div class="hint">Jei „Ramus" nepažymėta – generuojama nerimo problema. Jei „Orientuotas" nepažymėta – sumišimas.</div>
-      <label class="checkline">
-        <input type="checkbox" id="vykstaNamo">
-        Pacientas vyksta namo
-      </label>
-      <div id="namoBox" style="display:none; margin-top:10px">
-        <label for="rekomTemplate">Rekomendacijų šablonas
-          <select id="rekomTemplate">
-            <option value="">— pasirinkti —</option>
-          </select>
-        </label>
-        <div class="hint">Pažymėjus „Pacientas vyksta namo", NEWS2 ir slaugos planas nebegeneruojami – generuojamos rekomendacijos.</div>
-      </div>
     </div>
 
     <!-- KVĖPAVIMO SISTEMA -->
@@ -119,18 +107,6 @@
           <option value="P">Reaguoja į skausmą</option>
           <option value="U">Nereaguoja</option>
           <option value="C">Naujai atsiradęs sumišimas</option>
-        </select>
-      </label>
-    </div>
-
-    <!-- NOSIS -->
-    <div class="section">
-      <h2>Nosis</h2>
-      <label for="nosis">Nosis
-        <select id="nosis" name="nosis">
-          <option value="nedaryta">Nieko nedaryta</option>
-          <option value="tamponuota">Tamponuota nosis</option>
-          <option value="istraukti">Ištraukti tamponai</option>
         </select>
       </label>
     </div>
@@ -304,18 +280,6 @@
       </div>
     </div>
 
-    <!-- KRAUJAVIMO RIZIKA -->
-    <div class="section">
-      <h2>Kraujavimas</h2>
-      <label for="kraujavimo_rizika">Kraujavimo rizika
-        <select id="kraujavimo_rizika" name="kraujavimo_rizika">
-          <option value="nera">Nėra</option>
-          <option value="yra">Yra</option>
-        </select>
-      </label>
-      <div class="hint">Jei „Yra" – plane „Stebėjimas dėl galimo kraujavimo", „AKS sekimas".</div>
-    </div>
-
     <!-- PIRMINIS VERTINIMAS -->
     <div class="section" style="grid-column: 1 / -1">
       <details class="pv" id="pv_section">
@@ -387,6 +351,84 @@
 <script src="js/forms.js"></script>
 <script src="js/print.js"></script>
 <script src="js/app.js"></script>
+
+
+<script>
+/* DVPRS atsarginė logika: veikia net jei popups.js neprisega mygtuko */
+(function () {
+  const dvprsItems = [
+    { n: 0, emoji: "😀", text: "NĖRA SKAUSMO" },
+    { n: 1, emoji: "🙂", text: "NEPASTEBIMAS SKAUSMAS" },
+    { n: 2, emoji: "🙂", text: "PASTEBIMAS SKAUSMAS, NEKELIANTIS NEPATOGUMŲ" },
+    { n: 3, emoji: "🙂", text: "SKAUSMAS, KURIS KARTAIS NELEIDŽIA SUSIKAUPTI" },
+    { n: 4, emoji: "😐", text: "SKAUSMAS, KURIS NELEIDŽIA SUSIKAUPTI" },
+    { n: 5, emoji: "😐", text: "SKAUSMAS, KURIS TRUKDO VEIKLOMS" },
+    { n: 6, emoji: "😐", text: "SUNKU IGNORUOTI SKAUSMĄ" },
+    { n: 7, emoji: "😣", text: "SUNKU SUSIKAUPTI DĖL SKAUSMO" },
+    { n: 8, emoji: "😣", text: "DĖL SKAUSMO SUNKU KĄ NORS DARYTI" },
+    { n: 9, emoji: "😭", text: "NEPAKELIAMAS SKAUSMAS" },
+    { n: 10, emoji: "😭", text: "DIDŽIAUSIAS SKAUSMAS" }
+  ];
+
+  function el(id) { return document.getElementById(id); }
+
+  function openDvprsModal() {
+    const modal = el("dvprsModal");
+    const grid = el("dvprsGrid");
+    if (!modal || !grid) return;
+
+    if (!grid.dataset.ready) {
+      grid.innerHTML = dvprsItems.map(item => `
+        <button type="button" class="dvprsCard" data-score="${item.n}" aria-label="Skausmo lygis ${item.n} iš 10">
+          <div class="dvprsTop">
+            <div class="dvprsLeft">
+              <div class="dvprsEmoji" aria-hidden="true">${item.emoji}</div>
+              <div class="dvprsNum">${item.n}</div>
+            </div>
+            <div class="dvprsTag">${item.n}/10</div>
+          </div>
+          <div class="dvprsText">${item.text}</div>
+        </button>
+      `).join("");
+
+      grid.querySelectorAll("[data-score]").forEach(btn => {
+        btn.addEventListener("click", function () {
+          const score = this.getAttribute("data-score");
+          if (el("skausmas")) el("skausmas").value = "taip";
+          if (el("skausmoLygis")) el("skausmoLygis").value = score;
+          closeDvprsModal();
+        });
+      });
+
+      grid.dataset.ready = "true";
+    }
+
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeDvprsModal() {
+    const modal = el("dvprsModal");
+    if (!modal) return;
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const openBtn = el("openDvprsBtn");
+    if (openBtn) openBtn.addEventListener("click", openDvprsModal);
+
+    ["dvprsCloseBtn", "dvprsCancelBtn", "dvprsCloseBackdrop"].forEach(id => {
+      const closeBtn = el(id);
+      if (closeBtn) closeBtn.addEventListener("click", closeDvprsModal);
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeDvprsModal();
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
