@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paciento vertinimas ir slaugos planas</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<h1>Paciento vertinimas ir slaugos planas</h1>
+
+<form id="nursingForm" novalidate>
+  <div class="grid">
+
+    <!-- IDENTIFIKACIJA -->
+    <div class="section">
+      <h2>Identifikacija</h2>
+      <label for="palata">Palata
+        <input id="palata" name="palata" autocomplete="off">
+      </label>
+      <label for="lova">Lova
+        <input id="lova" name="lova" autocomplete="off">
+      </label>
+    </div>
+
+    <!-- PACIENTO BŪKLĖ -->
+    <div class="section">
+      <h2>Paciento būklė</h2>
+      <div class="checks">
+        <label><input type="checkbox" id="ramus"> Ramus</label>
+        <label><input type="checkbox" id="orientuotas"> Orientuotas</label>
+        <label><input type="checkbox" id="suvarzymas"> Suvaržymas</label>
+        <label><input type="checkbox" id="demencija"> Demencija</label>
+        <label><input type="checkbox" id="agresyvus"> Agresyvus</label>
+        <label><input type="checkbox" id="bendradarbiauja" checked> Bendradarbiauja</label>
+      </div>
+      <div class="hint">Jei „Ramus" nepažymėta – generuojama nerimo problema. Jei „Orientuotas" nepažymėta – sumišimas.</div>
+      <label class="checkline">
+        <input type="checkbox" id="vykstaNamo">
+        Pacientas vyksta namo
+      </label>
+      <div id="namoBox" style="display:none; margin-top:10px">
+        <label for="rekomTemplate">Rekomendacijų šablonas
+          <select id="rekomTemplate">
+            <option value="">— pasirinkti —</option>
+          </select>
+        </label>
+        <div class="hint">Pažymėjus „Pacientas vyksta namo", NEWS2 ir slaugos planas nebegeneruojami – generuojamos rekomendacijos.</div>
+      </div>
+    </div>
+
+    <!-- KVĖPAVIMO SISTEMA -->
+    <div class="section">
+      <h2>Kvėpavimo sistema</h2>
+      <label for="trach">Tracheostominis vamzdis
+        <select id="trach" name="trach">
+          <option value="ne">Nėra</option>
+          <option value="taip">Yra</option>
+        </select>
+      </label>
+      <div class="row">
+        <label for="sekretas_trach">Sekretas / atkosėjimas iš vamzdžio
+          <select id="sekretas_trach" name="sekretas_trach">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+        <label for="siurbimas">Atliekamas siurbimas
+          <select id="siurbimas" name="siurbimas">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+      </div>
+      <label for="dusulys">Dusulys
+        <select id="dusulys" name="dusulys">
+          <option value="ne">Ne</option>
+          <option value="taip">Taip</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- GYVYBINIAI RODIKLIAI -->
+    <div class="section">
+      <h2>Gyvybiniai rodikliai</h2>
+      <label for="saturacija">SpO₂ (%)
+        <input id="saturacija" name="saturacija" inputmode="decimal" placeholder="pvz. 96">
+      </label>
+      <div class="row">
+        <label for="sistolinis">AKS sistolinis
+          <input id="sistolinis" name="sistolinis" inputmode="decimal" placeholder="pvz. 120">
+        </label>
+        <label for="diastolinis">AKS diastolinis
+          <input id="diastolinis" name="diastolinis" inputmode="decimal" placeholder="pvz. 75">
+        </label>
+      </div>
+      <div class="row">
+        <label for="pulsas">Pulsas / min
+          <input id="pulsas" name="pulsas" inputmode="decimal" placeholder="pvz. 82">
+        </label>
+        <label for="temperatura">Temperatūra (°C)
+          <input id="temperatura" name="temperatura" inputmode="decimal" placeholder="pvz. 36.6">
+        </label>
+      </div>
+      <label for="rr">Kvėpavimo dažnis (/min)
+        <input id="rr" name="rr" inputmode="decimal" placeholder="pvz. 16">
+      </label>
+      <label for="o2">Papildomas O₂
+        <select id="o2" name="o2">
+          <option value="ne">Ne</option>
+          <option value="taip">Taip</option>
+        </select>
+      </label>
+      <label for="avpu">Sąmonės būklė
+        <select id="avpu" name="avpu">
+          <option value="A">Budrus</option>
+          <option value="V">Reaguoja į balsą</option>
+          <option value="P">Reaguoja į skausmą</option>
+          <option value="U">Nereaguoja</option>
+          <option value="C">Naujai atsiradęs sumišimas</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- NOSIS -->
+    <div class="section">
+      <h2>Nosis</h2>
+      <label for="nosis">Nosis
+        <select id="nosis" name="nosis">
+          <option value="nedaryta">Nieko nedaryta</option>
+          <option value="tamponuota">Tamponuota nosis</option>
+          <option value="istraukti">Ištraukti tamponai</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- MITYBA -->
+    <div class="section">
+      <h2>Mityba</h2>
+      <label for="mityba">Mityba
+        <select id="mityba" name="mityba">
+          <option value="burna">Per burną</option>
+          <option value="peg">Per PEG</option>
+          <option value="zondas">Per zondą (NG)</option>
+        </select>
+      </label>
+      <div class="row">
+        <label for="rijimas">Rijimas apsunkintas
+          <select id="rijimas" name="rijimas">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+        <label for="suvalgo">Suvartoja visą maistą
+          <select id="suvalgo" name="suvalgo">
+            <option value="taip">Taip</option>
+            <option value="ne">Ne</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <!-- ŠALINIMAS -->
+    <div class="section">
+      <h2>Šalinimas</h2>
+      <label for="kateteris">Šlapimo kateteris
+        <select id="kateteris" name="kateteris">
+          <option value="nera">Nėra</option>
+          <option value="yra">Yra</option>
+        </select>
+      </label>
+      <div class="row">
+        <label for="slapimo_nelaikymas">Šlapimo nelaikymas
+          <select id="slapimo_nelaikymas" name="slapimo_nelaikymas">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+        <label for="ismatu_nelaikymas">Išmatų nelaikymas
+          <select id="ismatu_nelaikymas" name="ismatu_nelaikymas">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <label for="viduriai">Vidurių užkietėjimas
+          <select id="viduriai" name="viduriai">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+        <label for="viduriavimas">Viduriavimas
+          <select id="viduriavimas" name="viduriavimas">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <!-- JUDĖJIMAS -->
+    <div class="section">
+      <h2>Judėjimas</h2>
+      <label for="mobilumas">Mobilumas
+        <select id="mobilumas" name="mobilumas">
+          <option value="sav">Savarankiškas</option>
+          <option value="pagalba">Su pagalba</option>
+          <option value="lova">Lovos režimas</option>
+        </select>
+      </label>
+      <label for="galvos_svaigimas">Galvos svaigimas
+        <select id="galvos_svaigimas" name="galvos_svaigimas">
+          <option value="ne">Ne</option>
+          <option value="taip">Taip</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- MIEGAS -->
+    <div class="section">
+      <h2>Miegas</h2>
+      <label for="miegas">Miego kokybė
+        <select id="miegas" name="miegas">
+          <option value="gera">Gera</option>
+          <option value="sutrikusi">Sutrikusi</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- ODA -->
+    <div class="section">
+      <h2>Oda</h2>
+      <div class="row">
+        <label for="pragulos">Pragulos
+          <select id="pragulos" name="pragulos">
+            <option value="nera">Nėra</option>
+            <option value="yra">Yra</option>
+          </select>
+        </label>
+        <label for="zaizdos">Žaizdos
+          <select id="zaizdos" name="zaizdos">
+            <option value="nera">Nėra</option>
+            <option value="yra">Yra</option>
+          </select>
+        </label>
+      </div>
+      <div id="zaizdos_aprasymas" style="display:none;">
+        <label for="zaizdos_text">Žaizdos aprašymas
+          <textarea id="zaizdos_text" name="zaizdos_text"
+            placeholder="Lokalizacija, dydis, sekrecija, paraudimas, skausmingumas."></textarea>
+        </label>
+      </div>
+    </div>
+
+    <!-- SKAUSMAS -->
+    <div class="section" id="skausmas_section">
+      <h2>Skausmas</h2>
+      <div class="row">
+        <label for="skausmas">Ar pacientas jaučia skausmą
+          <select id="skausmas" name="skausmas">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+        <label for="skausmoLygis">NRS (0–10)
+          <input id="skausmoLygis" name="skausmoLygis" inputmode="numeric" placeholder="pvz. 5">
+        </label>
+      </div>
+      <button type="button" class="secondary" id="openDvprsBtn" style="margin-top:10px">
+        Atidaryti DVPRS skausmo skalę (pacientui)
+      </button>
+      <div class="hint">DVPRS pasirinkimas automatiškai įrašo NRS skaičių į lauką.</div>
+    </div>
+
+    <!-- DIETA -->
+    <div class="section">
+      <h2>Dieta</h2>
+      <label for="dieta_kodas">Dieta (kodas)
+        <select id="dieta_kodas" name="dieta_kodas">
+          <option value="—">—</option>
+          <option value="P1">P1</option>
+          <option value="P4">P4</option>
+          <option value="PTM">PTM</option>
+          <option value="TM">TM</option>
+          <option value="SM">SM</option>
+          <option value="CD">CD</option>
+          <option value="PTM-CD">PTM-CD</option>
+          <option value="Na">Na</option>
+          <option value="Sk(padid.)">Sk(padid.)</option>
+          <option value="Sk(maž.)">Sk(maž.)</option>
+          <option value="B">B</option>
+          <option value="Lac">Lac</option>
+          <option value="NPB">NPB</option>
+          <option value="KITA">Kita (įrašyti)</option>
+        </select>
+      </label>
+      <div id="dieta_kita_wrap" style="display:none;">
+        <label for="dieta_kita">Įrašykite dietą
+          <input id="dieta_kita" name="dieta_kita"
+            placeholder="pvz. tyrės konsistencija, be laktozės ir t. t.">
+        </label>
+      </div>
+    </div>
+
+    <!-- KRAUJAVIMO RIZIKA -->
+    <div class="section">
+      <h2>Kraujavimas</h2>
+      <label for="kraujavimo_rizika">Kraujavimo rizika
+        <select id="kraujavimo_rizika" name="kraujavimo_rizika">
+          <option value="nera">Nėra</option>
+          <option value="yra">Yra</option>
+        </select>
+      </label>
+      <div class="hint">Jei „Yra" – plane „Stebėjimas dėl galimo kraujavimo", „AKS sekimas".</div>
+    </div>
+
+    <!-- PIRMINIS VERTINIMAS -->
+    <div class="section" style="grid-column: 1 / -1">
+      <details class="pv" id="pv_section">
+        <summary>Pirminis vertinimas <span class="hint">(spustelėkite)</span></summary>
+        <div class="pv-content">
+          <div class="checks" style="margin-top:6px">
+            <label><input type="checkbox" id="pv_cv"> Širdies–kraujotakos</label>
+            <label><input type="checkbox" id="pv_resp"> Kvėpavimo</label>
+            <label><input type="checkbox" id="pv_endo_cd"> Endokrininės (CD)</label>
+            <label><input type="checkbox" id="pv_renal_hep"> Inkstų/kepenų</label>
+          </div>
+          <label style="margin-top:10px">Infekcinės ligos (įrašykite)
+            <input id="pv_infection" placeholder="pvz. MRSA, C. difficile, TB, COVID.">
+          </label>
+          <label style="margin-top:10px">Alergijos
+            <textarea id="pv_allergy" rows="2"
+              placeholder="pvz. penicilinai, lateksas, maistas."></textarea>
+          </label>
+          <div class="hint" style="margin-top:6px">
+            Pažymėtos sritys automatiškai pridės atitinkamas intervencijas prie bendro slaugos plano.
+          </div>
+        </div>
+      </details>
+    </div>
+
+  </div><!-- .grid -->
+
+  <div class="actions">
+    <button type="button" id="genBtn" onclick="generateResults()">Generuoti</button>
+    <button type="button" id="resetBtn" class="secondary">Naujas pacientas</button>
+    <button type="button" class="secondary" onclick="spausdinti()">🖨 Spausdinti</button>
+    <button type="button" class="good" onclick="keltiISistema()">Kelti į sistemą</button>
+  </div>
+</form>
+
+<div id="results" class="results" aria-live="polite"></div>
+<div id="statusOk"  class="status ok">✅ Duomenys įkelti sėkmingai.</div>
+<div id="statusErr" class="status err">❌ Klaida siunčiant į Google Sheets. Patikrinkite WebApp adresą ir leidimus.</div>
+
+<!-- DVPRS MODAL -->
+<div id="dvprsModal" class="modal" aria-hidden="true">
+  <div class="modal__backdrop" id="dvprsCloseBackdrop"></div>
+  <div class="modal__sheet" role="dialog" aria-modal="true" aria-labelledby="dvprsTitle">
+    <div class="modal__header">
+      <div>
+        <div id="dvprsTitle" class="modal__title">DVPRS skausmo skalė (0–10)</div>
+        <div class="modal__subtitle">
+          Pacientas pasirenka skaičių. Pasirinkimas automatiškai įrašomas į NRS lauką.
+        </div>
+      </div>
+      <button type="button" class="modal__close" id="dvprsCloseBtn" aria-label="Uždaryti">✕</button>
+    </div>
+    <div class="dvprsLegend">
+      Spalvos ir veidukai padeda greičiau susiorientuoti. Vertinimą patvirtina paciento pasirinktas skaičius (0–10).
+    </div>
+    <div id="dvprsGrid" class="dvprsGrid"></div>
+    <div class="modal__footer">
+      <button type="button" class="secondary" id="dvprsCancelBtn">Uždaryti</button>
+    </div>
+  </div>
+</div>
+
+<!-- JS: tvarka svarbi – priklausomybės iš viršaus į apačią -->
+<script src="js/calculators.js"></script>
+<script src="js/library.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/popups.js"></script>
+<script src="js/generator.js"></script>
+<script src="js/forms.js"></script>
+<script src="js/print.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
