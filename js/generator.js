@@ -1,6 +1,6 @@
 /* generator.js – rezultatų generavimas ir atvaizdavimas */
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZbzSPIoSitQqNFsM1m6bbEMRfbHJ3ucSx4LdQFIgeYuLy_oKFhuXnWnkVhPe2QBTEUw/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbweh4WW-U8zUGBXhilpHVqyGGRpgEU1_T2fCNiNVh7OmnWWBZdaInFJZDSAoFSJNl8A-w/exec';
 
 let lastPayload = null;
 
