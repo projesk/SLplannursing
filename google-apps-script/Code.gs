@@ -12,6 +12,9 @@
  */
 
 const CONFIG = {
+  // Optional, but recommended: paste the Google Sheet ID here if this script is not bound
+  // directly to the Sheet. The ID is the long part between /d/ and /edit in the Sheet URL.
+  SPREADSHEET_ID: '',
   SHEET_NAME: 'Vertinimai',
   RETENTION_DAYS: 7,
   HEADERS: [
@@ -78,6 +81,23 @@ function doPost(e) {
   }
 }
 
+
+/**
+ * Manual smoke test from the Apps Script editor. It should append one test row.
+ */
+function testWriteSample() {
+  return doPost({
+    parameter: {
+      payload: JSON.stringify({
+        Laikas: new Date().toLocaleString('lt-LT'),
+        palata: 'TEST',
+        lova: 'TEST',
+        'įrašas': 'Bandomasis įrašas iš Apps Script testWriteSample().'
+      })
+    }
+  });
+}
+
 /**
  * Deletes rows older than CONFIG.RETENTION_DAYS based on the uploaded-at column.
  * This is also safe to run manually.
@@ -99,8 +119,20 @@ function cleanupOldRows() {
   }
 }
 
-function ensureSheet_() {
+
+function getSpreadsheet_() {
+  const id = String(CONFIG.SPREADSHEET_ID || '').trim();
+  if (id) return SpreadsheetApp.openById(id);
+
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  if (!spreadsheet) {
+    throw new Error('No active spreadsheet. Open Apps Script from Google Sheets Extensions → Apps Script or set CONFIG.SPREADSHEET_ID.');
+  }
+  return spreadsheet;
+}
+
+function ensureSheet_() {
+  const spreadsheet = getSpreadsheet_();
   let sheet = spreadsheet.getSheetByName(CONFIG.SHEET_NAME);
 
   if (!sheet) {
