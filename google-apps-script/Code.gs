@@ -41,21 +41,7 @@ function setup() {
  * Health check endpoint for the deployed Web app.
  */
 function doGet() {
-  try {
-    const spreadsheet = getSpreadsheet_();
-    return jsonResponse_({
-      ok: true,
-      message: 'Patient assessment endpoint is running.',
-      spreadsheet: spreadsheet.getName(),
-      sheet: CONFIG.SHEET_NAME
-    });
-  } catch (error) {
-    return jsonResponse_({
-      ok: false,
-      message: 'Endpoint is running, but the spreadsheet is not connected.',
-      error: String(error && error.message ? error.message : error)
-    });
-  }
+  return jsonResponse_({ ok: true, message: 'Patient assessment endpoint is running.' });
 }
 
 /**
