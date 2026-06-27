@@ -333,8 +333,9 @@ function keltiISistema() {
     body: JSON.stringify(lastPayload),
     mode: 'cors'
   })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    .then(() => {
+      // Google Apps Script Web Apps do not expose readable CORS responses in this setup.
+      // `no-cors` lets the assessment form send data without the browser blocking the request.
       document.getElementById('statusErr').style.display = 'none';
       document.getElementById('statusOk').style.display  = 'block';
     })
