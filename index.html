@@ -94,12 +94,20 @@
       <label for="rr">Kvėpavimo dažnis (/min)
         <input id="rr" name="rr" inputmode="decimal" placeholder="pvz. 16">
       </label>
-      <label for="o2">Papildomas O₂
-        <select id="o2" name="o2">
-          <option value="ne">Ne</option>
-          <option value="taip">Taip</option>
-        </select>
-      </label>
+      <div class="row">
+        <label for="o2">Papildomas O₂
+          <select id="o2" name="o2">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+        <label for="spo2Scale">SpO₂ skalė
+          <select id="spo2Scale" name="spo2Scale">
+            <option value="1">Scale 1 (įprasta)</option>
+            <option value="2">Scale 2 (hiperkapnijos rizika)</option>
+          </select>
+        </label>
+      </div>
       <label for="avpu">Sąmonės būklė
         <select id="avpu" name="avpu">
           <option value="A">Budrus</option>
@@ -295,6 +303,7 @@
       </div>
     </div>
 
+
     <!-- PIRMINIS VERTINIMAS -->
     <div class="section" style="grid-column: 1 / -1">
       <details class="pv" id="pv_section">
@@ -331,7 +340,7 @@
 </form>
 
 <div id="results" class="results" aria-live="polite"></div>
-<div id="statusOk"  class="status ok">✅ Duomenys įkelti sėkmingai.</div>
+<div id="statusOk"  class="status ok">✅ Užklausa išsiųsta į Google Sheets.</div>
 <div id="statusErr" class="status err">❌ Klaida siunčiant į Google Sheets. Patikrinkite WebApp adresą ir leidimus.</div>
 
 <!-- ══════════════════════════════════════════════════════════════
