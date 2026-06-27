@@ -36,7 +36,9 @@ function renderOutput(f, ctx) {
 
   const news = calcNEWS2({
     rr:   toNum(f['rr'].value),
-    spo2, onO2: f['o2'].value === 'taip',
+    spo2,
+    spo2Scale: f['spo2Scale'] ? f['spo2Scale'].value : '1',
+    onO2: f['o2'].value === 'taip',
     temp, sys, hr,
     avpu: f['avpu'].value
   });
@@ -116,7 +118,7 @@ function renderOutput(f, ctx) {
     if (vitalsRows.length) {
       vHtml += `<p>${vitalsRows.join(' &nbsp;|&nbsp; ')}</p>`;
     }
-    vHtml += `<p><strong>NEWS2:</strong> ${news.score} bal. &mdash; ${esc(news2Text(news.score, news.hasCritical))}</p>`;
+    vHtml += `<p><strong>NEWS2:</strong> ${news.isComplete ? news.score + ' bal.' : 'neapskaičiuotas'} &mdash; ${esc(news2Text(news.score, news.hasRedScore, news.isComplete, news.missingFields))}</p>`;
     if (scalesSummary.length) {
       vHtml += `<p>${scalesSummary.map(s => `<span class="pill">${esc(s)}</span>`).join('')}</p>`;
     }
@@ -227,17 +229,6 @@ function renderOutput(f, ctx) {
     html += `<p class="hint">Pacientui skirta <strong>${esc(dietaUi)}</strong> dieta</p>`;
   }
 
-  // ── DIAGNOSTIKA (laikina) ──
-  const dbgData = _lib();
-  const dbgKeys = esamosU.slice(0,3).map(k => {
-    const items = getProblemInterventions(k);
-    return `"${k}": ${items.length} interv.`;
-  });
-  html += `<div class="hint" style="color:#b91c1c;font-size:11px">
-    <strong>DEBUG:</strong> CARE_LIBRARY_DATA = ${dbgData ? 'ĮKELTA ('+Object.keys(dbgData.problems).length+' prob.)' : 'NULL ❌'}<br>
-    Raktu tikrinimas: ${dbgKeys.join(' | ') || '(nėra esamų problemų)'}
-  </div>`;
-
   document.getElementById('results').innerHTML = html;
 
   // ── Payload (JSON įrašas) ──
@@ -302,7 +293,7 @@ function _buildPayload(f, d) {
 
   let irasas =
     `Gyvybiniai rodikliai:\n${vitalsLine}\n` +
-    `NEWS2: ${d.news.score} bal. – ${news2Text(d.news.score, d.news.hasCritical)}\n`;
+    `NEWS2: ${d.news.isComplete ? d.news.score + ' bal.' : 'neapskaičiuotas'} – ${news2Text(d.news.score, d.news.hasRedScore, d.news.isComplete, d.news.missingFields)}\n`;
 
   if (d.scalesSummary.length) irasas += `Vertinimo skalės: ${d.scalesSummary.join(', ')}\n`;
 
@@ -333,15 +324,11 @@ function keltiISistema() {
   if (!lastPayload) { alert('Pirmiausia paspauskite „Generuoti".'); return; }
   const url = (GOOGLE_SCRIPT_URL || '').trim();
   if (!url || !url.endsWith('exec')) {
-    alert('Patikrinkite WebApp URL – turi baigtis exec.');
+    alert('Patikrinkite WebApp URL – turi baigtis exec. Naudokite Apps Script Web app /exec adresą, ne Google Sheets lentelės adresą.');
     return;
   }
-  fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(lastPayload),
-    mode: 'no-cors'
-  })
+
+  submitToGoogleSheets(url, lastPayload)
     .then(() => {
       document.getElementById('statusErr').style.display = 'none';
       document.getElementById('statusOk').style.display  = 'block';
@@ -350,6 +337,51 @@ function keltiISistema() {
       document.getElementById('statusOk').style.display  = 'none';
       document.getElementById('statusErr').style.display = 'block';
     });
+}
+
+function submitToGoogleSheets(url, payload) {
+  return new Promise((resolve, reject) => {
+    const id = `gs_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const iframe = document.createElement('iframe');
+    const form = document.createElement('form');
+    const input = document.createElement('input');
+    let settled = false;
+
+    function cleanup() {
+      setTimeout(() => {
+        iframe.remove();
+        form.remove();
+      }, 1000);
+    }
+
+    function finish(ok) {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (ok) resolve(); else reject(new Error('Google Sheets submission failed.'));
+    }
+
+    iframe.name = id;
+    iframe.style.display = 'none';
+    iframe.onload = () => finish(true);
+    iframe.onerror = () => finish(false);
+
+    form.action = url;
+    form.method = 'POST';
+    form.target = id;
+    form.style.display = 'none';
+
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(payload);
+
+    form.appendChild(input);
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+    form.submit();
+
+    setTimeout(() => finish(false), 30000);
+  });
 }
 
 function spausdinti() { window.print(); }
