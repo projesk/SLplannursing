@@ -41,7 +41,21 @@ function setup() {
  * Health check endpoint for the deployed Web app.
  */
 function doGet() {
-  return jsonResponse_({ ok: true, message: 'Patient assessment endpoint is running.' });
+  try {
+    const spreadsheet = getSpreadsheet_();
+    return jsonResponse_({
+      ok: true,
+      message: 'Patient assessment endpoint is running.',
+      spreadsheet: spreadsheet.getName(),
+      sheet: CONFIG.SHEET_NAME
+    });
+  } catch (error) {
+    return jsonResponse_({
+      ok: false,
+      message: 'Endpoint is running, but the spreadsheet is not connected.',
+      error: String(error && error.message ? error.message : error)
+    });
+  }
 }
 
 /**
@@ -173,7 +187,20 @@ function parsePayload_(e) {
   try {
     return JSON.parse(body);
   } catch (error) {
+    const decodedPayload = parseUrlEncodedPayload_(body);
+    if (decodedPayload) return decodedPayload;
     throw new Error('Request body must be valid JSON.');
+  }
+}
+
+function parseUrlEncodedPayload_(body) {
+  const match = String(body).match(/(?:^|&)payload=([^&]+)/);
+  if (!match) return null;
+
+  try {
+    return JSON.parse(decodeURIComponent(match[1].replace(/\+/g, ' ')));
+  } catch (error) {
+    return null;
   }
 }
 

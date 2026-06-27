@@ -25,4 +25,4 @@
 
 ## Patikra
 
-Atidarius Web app `/exec` URL naršyklėje, turi būti grąžinama JSON žinutė su `"ok":true`, `spreadsheet` ir `sheet`. Jei matote `"ok":false`, patikrinkite, ar scriptas atidarytas iš Google Sheets, arba užpildykite `CONFIG.SPREADSHEET_ID`. Paciento vertinimo forma siunčia duomenis per paslėptą POST formą į Apps Script Web App `/exec` adresą, nes Google Apps Script atsakymas naršyklėje dažnai nėra skaitomas per CORS. Į `GOOGLE_SCRIPT_URL` būtina įklijuoti būtent Apps Script Web App `/exec` URL, ne Google Sheets lentelės URL.
+Atidarius Web app `/exec` URL naršyklėje, turi būti grąžinama JSON žinutė su `"ok":true`, `spreadsheet` ir `sheet`. Jei matote `"ok":false`, patikrinkite, ar scriptas atidarytas iš Google Sheets, arba užpildykite `CONFIG.SPREADSHEET_ID`. Paciento vertinimo forma siunčia duomenis per `sendBeacon` / `no-cors` POST į Apps Script Web App `/exec` adresą, nes Google Apps Script atsakymas naršyklėje dažnai nėra skaitomas per CORS. Į `GOOGLE_SCRIPT_URL` būtina įklijuoti būtent Apps Script Web App `/exec` URL, ne Google Sheets lentelės URL.

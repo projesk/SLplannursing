@@ -342,12 +342,32 @@ function keltiISistema() {
 }
 
 function submitToGoogleSheets(url, payload) {
+  const body = JSON.stringify(payload);
+
+  if (navigator.sendBeacon) {
+    const blob = new Blob([body], { type: 'text/plain;charset=UTF-8' });
+    if (navigator.sendBeacon(url, blob)) {
+      return Promise.resolve();
+    }
+  }
+
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body,
+    mode: 'no-cors',
+    keepalive: true
+  }).catch(() => submitToGoogleSheetsWithForm(url, body));
+}
+
+function submitToGoogleSheetsWithForm(url, body) {
   return new Promise((resolve, reject) => {
     const id = `gs_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const iframe = document.createElement('iframe');
     const form = document.createElement('form');
     const input = document.createElement('input');
     let settled = false;
+    let submitted = false;
 
     function cleanup() {
       setTimeout(() => {
@@ -364,8 +384,9 @@ function submitToGoogleSheets(url, payload) {
     }
 
     iframe.name = id;
+    iframe.setAttribute('name', id);
     iframe.style.display = 'none';
-    iframe.onload = () => finish(true);
+    iframe.onload = () => { if (submitted) finish(true); };
     iframe.onerror = () => finish(false);
 
     form.action = url;
@@ -375,14 +396,15 @@ function submitToGoogleSheets(url, payload) {
 
     input.type = 'hidden';
     input.name = 'payload';
-    input.value = JSON.stringify(payload);
+    input.value = body;
 
     form.appendChild(input);
     document.body.appendChild(iframe);
     document.body.appendChild(form);
+    submitted = true;
     form.submit();
 
-    setTimeout(() => finish(false), 30000);
+    setTimeout(() => finish(true), 3000);
   });
 }
 
