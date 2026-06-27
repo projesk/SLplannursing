@@ -134,7 +134,8 @@ function installCleanupTrigger_() {
 }
 
 function parsePayload_(e) {
-  const body = e && e.postData && e.postData.contents;
+  const formPayload = e && e.parameter && e.parameter.payload;
+  const body = formPayload || (e && e.postData && e.postData.contents);
   if (!body) throw new Error('Empty request body.');
 
   try {

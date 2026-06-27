@@ -1,6 +1,6 @@
 /* generator.js – rezultatų generavimas ir atvaizdavimas */
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbweh4WW-U8zUGBXhilpHVqyGGRpgEU1_T2fCNiNVh7OmnWWBZdaInFJZDSAoFSJNl8A-w/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZbzSPIoSitQqNFsM1m6bbEMRfbHJ3ucSx4LdQFIgeYuLy_oKFhuXnWnkVhPe2QBTEUw/exec';
 
 let lastPayload = null;
 
@@ -324,15 +324,11 @@ function keltiISistema() {
   if (!lastPayload) { alert('Pirmiausia paspauskite „Generuoti".'); return; }
   const url = (GOOGLE_SCRIPT_URL || '').trim();
   if (!url || !url.endsWith('exec')) {
-    alert('Patikrinkite WebApp URL – turi baigtis exec.');
+    alert('Patikrinkite WebApp URL – turi baigtis exec. Naudokite Apps Script Web app /exec adresą, ne Google Sheets lentelės adresą.');
     return;
   }
-  fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(lastPayload),
-    mode: 'cors'
-  })
+
+  submitToGoogleSheets(url, lastPayload)
     .then(() => {
       // Google Apps Script Web Apps do not expose readable CORS responses in this setup.
       // `no-cors` lets the assessment form send data without the browser blocking the request.
@@ -343,6 +339,51 @@ function keltiISistema() {
       document.getElementById('statusOk').style.display  = 'none';
       document.getElementById('statusErr').style.display = 'block';
     });
+}
+
+function submitToGoogleSheets(url, payload) {
+  return new Promise((resolve, reject) => {
+    const id = `gs_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const iframe = document.createElement('iframe');
+    const form = document.createElement('form');
+    const input = document.createElement('input');
+    let settled = false;
+
+    function cleanup() {
+      setTimeout(() => {
+        iframe.remove();
+        form.remove();
+      }, 1000);
+    }
+
+    function finish(ok) {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (ok) resolve(); else reject(new Error('Google Sheets submission failed.'));
+    }
+
+    iframe.name = id;
+    iframe.style.display = 'none';
+    iframe.onload = () => finish(true);
+    iframe.onerror = () => finish(false);
+
+    form.action = url;
+    form.method = 'POST';
+    form.target = id;
+    form.style.display = 'none';
+
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(payload);
+
+    form.appendChild(input);
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+    form.submit();
+
+    setTimeout(() => finish(false), 30000);
+  });
 }
 
 function spausdinti() { window.print(); }

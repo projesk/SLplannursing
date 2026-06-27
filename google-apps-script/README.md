@@ -22,4 +22,4 @@
 
 ## Patikra
 
-Atidarius Web app `/exec` URL naršyklėje, turi būti grąžinama JSON žinutė, kad endpoint veikia. Paciento vertinimo forma siunčia duomenis su `mode: no-cors`, nes Google Apps Script Web App atsakymas naršyklėje dažnai nėra skaitomas per CORS, nors POST užklausa įvykdoma.
+Atidarius Web app `/exec` URL naršyklėje, turi būti grąžinama JSON žinutė, kad endpoint veikia. Paciento vertinimo forma siunčia duomenis per paslėptą POST formą į Apps Script Web App `/exec` adresą, nes Google Apps Script atsakymas naršyklėje dažnai nėra skaitomas per CORS. Į `GOOGLE_SCRIPT_URL` būtina įklijuoti būtent Apps Script Web App `/exec` URL, ne Google Sheets lentelės URL.
