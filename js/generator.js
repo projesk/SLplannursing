@@ -1,6 +1,6 @@
 /* generator.js – rezultatų generavimas ir atvaizdavimas */
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxODAbmdrmccCYCUkswsFgnz-nrC8clEQQf-5kId3y-3TCqUwsU4pyCze2Jojv43VV_1A/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbweh4WW-U8zUGBXhilpHVqyGGRpgEU1_T2fCNiNVh7OmnWWBZdaInFJZDSAoFSJNl8A-w/exec';
 
 let lastPayload = null;
 
@@ -331,7 +331,7 @@ function keltiISistema() {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(lastPayload),
-    mode: 'no-cors'
+    mode: 'cors'
   })
     .then(() => {
       // Google Apps Script Web Apps do not expose readable CORS responses in this setup.
