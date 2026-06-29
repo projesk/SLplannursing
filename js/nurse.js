@@ -374,7 +374,7 @@ function calculateRisk(record) {
 
 function renderEditableList(title, id, items) {
   const value = items.length ? items.map(item => `• ${item}`).join('\n') : '-';
-  return `<div class="section"><h3>${title}</h3><div id="${id}" class="editable-list">${escapeHtml(value)}</div></div>`;
+  return `<div class="section"><h3>${title}</h3><div id="${id}" class="editable-list" data-editable-block tabindex="0">${escapeHtml(value)}</div></div>`;
 }
 
 function parseEditableList(text) {
@@ -416,8 +416,10 @@ function enablePlanEdit() {
   const plan = document.getElementById('planText');
   if (!plan) return;
   plan.setAttribute('contenteditable', 'true');
-  document.getElementById('currentProblemsText')?.setAttribute('contenteditable', 'true');
-  document.getElementById('possibleProblemsText')?.setAttribute('contenteditable', 'true');
+  document.querySelectorAll('[data-editable-block]').forEach(block => {
+    block.setAttribute('contenteditable', 'true');
+    block.classList.add('is-editing');
+  });
   plan.focus();
   document.getElementById('editPlanBtn').hidden = true;
   document.getElementById('savePlanBtn').hidden = false;
@@ -431,8 +433,10 @@ function savePlanEdit() {
   nurseState.activeRecord.parsed.esamos = parseEditableList(document.getElementById('currentProblemsText')?.textContent || '');
   nurseState.activeRecord.parsed.galimos = parseEditableList(document.getElementById('possibleProblemsText')?.textContent || '');
   plan.setAttribute('contenteditable', 'false');
-  document.getElementById('currentProblemsText')?.setAttribute('contenteditable', 'false');
-  document.getElementById('possibleProblemsText')?.setAttribute('contenteditable', 'false');
+  document.querySelectorAll('[data-editable-block]').forEach(block => {
+    block.setAttribute('contenteditable', 'false');
+    block.classList.remove('is-editing');
+  });
   document.getElementById('editPlanBtn').hidden = false;
   document.getElementById('savePlanBtn').hidden = true;
 }

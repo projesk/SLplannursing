@@ -168,3 +168,16 @@ ul.clean { margin: 8px 0 0; padding-left: 20px; }
   min-height: 24px;
 }
 .nurse-signature { margin-top: 22px; }
+.editable-list.is-editing {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  background: #fff;
+  cursor: text;
+}
+.editable-list.is-editing::before {
+  content: "Redaguojama: galite keisti problemų sąrašą";
+  display: block;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
