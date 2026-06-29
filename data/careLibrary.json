@@ -652,6 +652,138 @@
         "Informuoti gydytoją apie savęs žalojimo riziką."
       ],
       "evaluation": "Savęs sužalojimo epizodų nėra, pacientas stebimas pagal poreikį."
+    },
+    "Savarankiško maitinimosi sutrikimas": {
+      "system": "Mityba",
+      "goal": "Užtikrinti saugų ir pakankamą paciento maitinimą pagal savarankiškumo lygį.",
+      "interventions": [
+        "Įvertinti, kokios pagalbos pacientui reikia valgant.",
+        "Padėti pasiruošti valgymui ir maitinti pagal poreikį.",
+        "Stebėti suvalgomo maisto kiekį ir rijimo saugumą.",
+        "Skatinti paciento savarankiškumą pagal galimybes."
+      ],
+      "evaluation": "Pacientas gauna reikiamą pagalbą valgant, maitinimas vyksta saugiai."
+    },
+    "Nepakankamas skysčių vartojimas / Dehidratacijos rizika": {
+      "system": "Mityba / skysčiai",
+      "goal": "Užtikrinti pakankamą skysčių suvartojimą ir mažinti dehidratacijos riziką.",
+      "interventions": [
+        "Sekti išgeriamų skysčių kiekį.",
+        "Skatinti gerti skysčius mažais kiekiais dažniau, jei nėra kontraindikacijų.",
+        "Stebėti dehidratacijos požymius: burnos sausumą, sumažėjusį diurezę, silpnumą.",
+        "Informuoti gydytoją, jei skysčių suvartojimas išlieka nepakankamas."
+      ],
+      "evaluation": "Skysčių suvartojimas pakankamas arba dehidratacijos rizika sumažinta."
+    },
+    "Stomos priežiūros poreikis": {
+      "system": "Šalinimas",
+      "goal": "Užtikrinti tinkamą stomos priežiūrą ir išvengti odos pažeidimų.",
+      "interventions": [
+        "Apžiūrėti stomą ir odą aplink ją kiekvienos priežiūros metu.",
+        "Keisti stomos priežiūros priemones pagal poreikį ir įstaigos tvarką.",
+        "Stebėti sekreto / turinio kiekį, spalvą ir kvapą.",
+        "Mokyti pacientą ar artimuosius stomos priežiūros principų."
+      ],
+      "evaluation": "Stoma prižiūrėta, oda aplink stomą be dirginimo ar infekcijos požymių."
+    },
+    "Griuvimų rizika": {
+      "system": "Sauga / judėjimas",
+      "goal": "Sumažinti griuvimo riziką ir užtikrinti saugų judėjimą.",
+      "interventions": [
+        "Įvertinti aplinkos saugumą ir pašalinti kliūtis.",
+        "Užtikrinti, kad pagalbinė priemonė būtų pasiekiama ir naudojama tinkamai.",
+        "Padėti pacientui keliantis ir judant pagal poreikį.",
+        "Paaiškinti pacientui kviesti pagalbą prieš stojantis."
+      ],
+      "evaluation": "Griuvimų neįvyko, pacientas juda saugiau."
+    },
+    "Pragula": {
+      "system": "Oda",
+      "goal": "Skatinti pragulos gijimą ir išvengti pažeidimo progresavimo.",
+      "interventions": [
+        "Įvertinti pragulos lokalizaciją, stadiją ir aplinkinę odą.",
+        "Keisti paciento padėtį pagal individualų planą.",
+        "Naudoti spaudimą mažinančias priemones.",
+        "Atlikti žaizdos / pragulos priežiūrą pagal paskyrimus."
+      ],
+      "evaluation": "Pragula neprogresuoja, oda prižiūrima, gijimo požymiai stebimi."
+    },
+    "Odos vientisumo pažeidimas / Odos pažeidimo rizika": {
+      "system": "Oda",
+      "goal": "Apsaugoti odą nuo pažeidimo progresavimo ir skatinti gijimą.",
+      "interventions": [
+        "Kasdien vertinti paraudimo, iššutimo ar maceracijos vietas.",
+        "Palaikyti odą švarią ir sausą.",
+        "Naudoti odos apsaugos priemones pagal poreikį.",
+        "Mažinti spaudimą ir trintį pažeidimo vietose."
+      ],
+      "evaluation": "Odos būklė neblogėja, paraudimas ar iššutimas mažėja."
+    },
+    "Žaizda / odos vientisumo pažeidimas": {
+      "system": "Oda",
+      "goal": "Užtikrinti žaizdos priežiūrą ir mažinti komplikacijų riziką.",
+      "interventions": [
+        "Įvertinti žaizdos lokalizaciją, dydį, sekreciją ir aplinkinę odą.",
+        "Tvarstyti žaizdą aseptiškai pagal paskyrimus.",
+        "Stebėti skausmą, sekrecijos pokyčius ir gijimo dinamiką.",
+        "Dokumentuoti žaizdos būklės pokyčius."
+      ],
+      "evaluation": "Žaizda prižiūrima, infekcijos ar blogėjimo požymiai laiku pastebimi."
+    },
+    "Odos infekcijos rizika": {
+      "system": "Oda / infekcijų kontrolė",
+      "goal": "Laiku atpažinti infekcijos požymius ir mažinti infekcijos plitimo riziką.",
+      "interventions": [
+        "Stebėti paraudimą, patinimą, skausmą, karštį, pūlingą sekreciją ir kvapą.",
+        "Laikytis rankų higienos ir aseptikos principų.",
+        "Informuoti gydytoją apie infekcijos požymius.",
+        "Stebėti temperatūrą ir bendrą paciento būklę."
+      ],
+      "evaluation": "Infekcijos požymiai stebimi, apie pokyčius informuota laiku."
+    },
+    "Ūmus skausmas": {
+      "system": "Skausmas",
+      "goal": "Sumažinti ūmų skausmą ir užtikrinti paciento komfortą.",
+      "interventions": [
+        "Vertinti skausmą pagal NRS prieš ir po intervencijų.",
+        "Taikyti paskirtas medikamentines ir nemedikamentines skausmo mažinimo priemones.",
+        "Stebėti, kas skausmą didina ar mažina.",
+        "Informuoti gydytoją, jei skausmas nemažėja."
+      ],
+      "evaluation": "Ūmus skausmas sumažėjo arba kontroliuojamas."
+    },
+    "Lėtinis skausmas": {
+      "system": "Skausmas",
+      "goal": "Padėti pacientui valdyti lėtinį skausmą ir palaikyti funkcionalumą.",
+      "interventions": [
+        "Reguliariai vertinti skausmo intensyvumą, pobūdį ir poveikį veiklai.",
+        "Skatinti taikyti individualiai veiksmingas skausmo mažinimo priemones.",
+        "Stebėti vaistų poveikį ir nepageidaujamas reakcijas.",
+        "Informuoti gydytoją apie nepakankamą skausmo kontrolę."
+      ],
+      "evaluation": "Lėtinis skausmas valdomas, pacientas žino skausmo mažinimo priemones."
+    },
+    "Savęs arba kitų sužalojimo rizika": {
+      "system": "Sauga",
+      "goal": "Užtikrinti paciento ir aplinkinių saugumą.",
+      "interventions": [
+        "Stebėti paciento elgesį ir savęs ar kitų žalojimo riziką.",
+        "Pašalinti potencialiai pavojingus daiktus.",
+        "Bendrauti ramiai ir mažinti dirgiklius aplinkoje.",
+        "Informuoti gydytoją apie agresyvų ar save žalojantį elgesį."
+      ],
+      "evaluation": "Pacientas ir aplinkiniai saugūs, rizikos epizodai valdomi."
+    },
+    "Apsauginių priemonių taikymas": {
+      "system": "Sauga",
+      "goal": "Saugiai taikyti apsaugines priemones ir išvengti sužalojimų.",
+      "interventions": [
+        "Įvertinti apsauginių priemonių poreikį ir taikymo saugumą.",
+        "Stebėti paciento būklę ir komfortą taikant apsaugines priemones.",
+        "Reguliariai tikrinti odą ir kraujotaką, jei priemonės riboja judėjimą.",
+        "Dokumentuoti priemonių taikymo laiką ir stebėseną."
+      ],
+      "evaluation": "Apsauginės priemonės taikomos saugiai, komplikacijų nėra."
     }
   },
   "dietPlan": {

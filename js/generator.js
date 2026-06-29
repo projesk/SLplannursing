@@ -73,6 +73,7 @@ function collectRenderData(f, ctx) {
     dietCode,
     dietCustom,
     hasDiet: Boolean((dietCode && dietCode !== 'KITA' && dietCode !== '—') || (dietCode === 'KITA' && dietCustom)),
+    additionalDetails: collectAdditionalDetails(f),
     scalesSummary: buildScalesSummary(),
     pvSelected: pv.selected,
     pvExtraItems: pv.extraItems,
@@ -145,6 +146,58 @@ function collectPrimaryAssessment() {
   };
 }
 
+
+function collectAdditionalDetails(f) {
+  const details = [];
+  const valueText = (name, map = {}) => {
+    const value = f[name] ? f[name].value : '';
+    return map[value] || value;
+  };
+  const add = (label, value) => {
+    if (value == null || value === '' || value === '—') return;
+    details.push(`${label}: ${value}`);
+  };
+
+  add('Pagalba valgant', valueText('pagalba_valgant', { taip: 'taip', ne: 'ne' }));
+  add('Suvalgomas kiekis', valueText('suvalgomas_kiekis', { visa: 'visa porcija', '75': 'apie 75 %', '50': 'apie 50 %', maziau_50: 'mažiau nei 50 %' }));
+  add('Skysčių vartojimas', valueText('skysciai', { pakankamas: 'pakankamas', nepakankamas: 'nepakankamas' }));
+  add('Stoma', valueText('stoma', { nera: 'nėra', yra: 'yra' }));
+  add('Pagalbinė priemonė', valueText('pagalbine_priemone', { nera: 'nėra', lazda: 'lazda', vaikstyne: 'vaikštynė', vezimelis: 'vežimėlis' }));
+  add('Kontraktūrų rizika', valueText('kontrakturu_rizika', { taip: 'taip', ne: 'ne' }));
+  add('Silpnumas', valueText('silpnumas', { taip: 'taip', ne: 'ne' }));
+  add('Odos paraudimas / iššutimas', valueText('odos_paraudimas', { nera: 'nėra', yra: 'yra' }));
+
+  if (f['pragulos'] && f['pragulos'].value === 'yra') {
+    add('Pragulos lokalizacija', valueText('pragulos_lokalizacija'));
+    add('Pragulos stadija', valueText('pragulos_stadija'));
+  }
+
+  if (f['zaizdos'] && f['zaizdos'].value === 'yra') {
+    add('Žaizdos lokalizacija', valueText('zaizdos_lokalizacija'));
+    add('Žaizdos dydis', valueText('zaizdos_dydis'));
+    add('Sekrecija', valueText('zaizdos_sekrecija', { nera: 'nėra', maza: 'maža', vidutine: 'vidutinė', gausi: 'gausi' }));
+    add('Infekcijos požymiai', valueText('infekcijos_pozymiai', { taip: 'taip', ne: 'ne' }));
+  }
+
+  const nrs = toNum(f['skausmoLygis'] ? f['skausmoLygis'].value : '');
+  if ((f['skausmas'] && f['skausmas'].value === 'taip') || (nrs != null && nrs > 0)) {
+    add('Skausmo vieta', valueText('skausmo_vieta'));
+    add('Skausmo pobūdis', valueText('skausmo_pobudis', { maudziantis: 'maudžiantis', duriantis: 'duriantis', deginantis: 'deginantis', spaudziantis: 'spaudžiantis', kitas: 'kitas' }));
+    add('Skausmo trukmė', valueText('skausmo_trukme', { umus: 'ūmus', letinis: 'lėtinis' }));
+    add('Skausmą mažina', valueText('skausma_mazina'));
+    add('Skausmą didina', valueText('skausma_didina'));
+  }
+
+  if (document.getElementById('suvarzymas')?.checked) {
+    add('Fiksacijos priežastis', valueText('fiksacijos_priezastis', { kateteriai_zondai: 'traukia kateterius / zondus', agresyvus_save_zalojantis: 'agresyvus / save žalojantis elgesys', kita: 'kita' }));
+    add('Lovos turėklai / apsauginės priemonės', valueText('apsaugines_priemones', { netaikoma: 'netaikoma', taikoma: 'taikoma' }));
+    add('Fiksacijos pradžios laikas', valueText('fiksacijos_pradzia'));
+    add('Fiksacijos stebėjimo intervalas', valueText('fiksacijos_intervalas'));
+  }
+
+  return details;
+}
+
 function buildResultsHtml(data) {
   return [
     buildVitalsHtml(data),
@@ -152,6 +205,7 @@ function buildResultsHtml(data) {
     buildProblemsHtml('Esamos problemos', data.esamosU),
     buildProblemsHtml('Galimos problemos', data.galimosU),
     buildCarePlanHtml(data),
+    buildAdditionalDetailsHtml(data),
     buildPrimaryAssessmentHtml(data),
     buildDietHintHtml(data)
   ].join('');
@@ -239,6 +293,11 @@ function getPlanItemsForProblem(problem, data) {
   return items;
 }
 
+function buildAdditionalDetailsHtml(data) {
+  if (!data.additionalDetails.length) return '';
+  return `<h3>Papildomi vertinimo duomenys</h3><div class="planas"><ul>${data.additionalDetails.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`;
+}
+
 function buildPrimaryAssessmentHtml(data) {
   if (!data.hasPV && !data.pvExtraItems.length) return '';
 
@@ -287,6 +346,42 @@ function buildPayload(f, data) {
   };
 
   document.getElementById('results').insertAdjacentHTML('beforeend', `<div class="mono">${esc(JSON.stringify(lastPayload, null, 2))}</div>`);
+}
+
+function collectPlanItems(data) {
+  const seen = new Set();
+  const planItems = [];
+
+  const addItems = items => {
+    items.forEach(item => {
+      if (seen.has(item)) return;
+      seen.add(item);
+      planItems.push(item);
+    });
+  };
+
+  if (data.combineBedRestAndUlcers) addItems(getProblemInterventions('Gulimas režimas ir pragulos'));
+
+  [...data.esamosU, ...data.galimosU].forEach(problem => addItems(getPlanItemsForProblem(problem, data)));
+
+  if (data.painBlock) addItems(getProblemInterventions(data.painBlock.key));
+  if (data.dietCode && data.dietCode !== 'KITA' && data.dietCode !== '—') addItems(getDietPlan(data.dietCode));
+  if (data.isRestrained) addItems(getProblemInterventions('Taikoma fizinė fiksacija'));
+  if (data.pvExtraItems.length) addItems(uniq(data.pvExtraItems));
+
+  return planItems;
+}
+
+function formatVitalsLine(vitals) {
+  const { spo2, sys, dia, map, hr, temp } = vitals;
+  const aksStr = sys != null && dia != null ? `${sys}/${dia} mmHg${map != null ? ` (MAP ${map})` : ''}` : null;
+
+  return [
+    spo2 != null ? `SpO₂ ${spo2} %` : null,
+    aksStr ? `AKS ${aksStr}` : null,
+    hr != null ? `ŠSD ${hr}/min` : null,
+    temp != null ? `T ${Number(temp).toFixed(1)} °C` : null
+  ].filter(Boolean).join(', ') || '-';
 }
 
 function collectPlanItems(data) {

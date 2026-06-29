@@ -35,6 +35,30 @@
         <label><input type="checkbox" id="agresyvus"> Agresyvus</label>
         <label><input type="checkbox" id="bendradarbiauja" checked> Bendradarbiauja</label>
       </div>
+      <div id="fiksacija_detales" style="display:none; margin-top:10px;">
+        <label for="fiksacijos_priezastis">Fiksacijos priežastis
+          <select id="fiksacijos_priezastis" name="fiksacijos_priezastis">
+            <option value="">—</option>
+            <option value="kateteriai_zondai">Traukia kateterius / zondus</option>
+            <option value="agresyvus_save_zalojantis">Agresyvus / save žalojantis elgesys</option>
+            <option value="kita">Kita</option>
+          </select>
+        </label>
+        <div class="row">
+          <label for="apsaugines_priemones">Lovos turėklai / apsauginės priemonės
+            <select id="apsaugines_priemones" name="apsaugines_priemones">
+              <option value="netaikoma">Netaikoma</option>
+              <option value="taikoma">Taikoma</option>
+            </select>
+          </label>
+          <label for="fiksacijos_pradzia">Fiksacijos pradžios laikas
+            <input id="fiksacijos_pradzia" name="fiksacijos_pradzia" type="time">
+          </label>
+        </div>
+        <label for="fiksacijos_intervalas">Fiksacijos stebėjimo intervalas
+          <input id="fiksacijos_intervalas" name="fiksacijos_intervalas" placeholder="pvz. kas 15 min., kas 30 min.">
+        </label>
+      </div>
       <div class="hint">Jei „Ramus" nepažymėta – generuojama nerimo problema. Jei „Orientuotas" nepažymėta – sumišimas.</div>
     </div>
 
@@ -143,6 +167,28 @@
           </select>
         </label>
       </div>
+      <div class="row">
+        <label for="pagalba_valgant">Reikia pagalbos valgant
+          <select id="pagalba_valgant" name="pagalba_valgant">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+        <label for="suvalgomas_kiekis">Suvalgomas kiekis
+          <select id="suvalgomas_kiekis" name="suvalgomas_kiekis">
+            <option value="visa">Visa porcija</option>
+            <option value="75">Apie 75 %</option>
+            <option value="50">Apie 50 %</option>
+            <option value="maziau_50">Mažiau nei 50 %</option>
+          </select>
+        </label>
+      </div>
+      <label for="skysciai">Skysčių vartojimas
+        <select id="skysciai" name="skysciai">
+          <option value="pakankamas">Pakankamas</option>
+          <option value="nepakankamas">Nepakankamas</option>
+        </select>
+      </label>
       <!-- MUST vertinimas -->
       <button type="button" class="secondary" id="openMustBtn" style="margin-top:10px">
         Atidaryti MUST mitybos vertinimą
@@ -155,6 +201,12 @@
       <h2>Šalinimas</h2>
       <label for="kateteris">Šlapimo kateteris
         <select id="kateteris" name="kateteris">
+          <option value="nera">Nėra</option>
+          <option value="yra">Yra</option>
+        </select>
+      </label>
+      <label for="stoma">Stoma
+        <select id="stoma" name="stoma">
           <option value="nera">Nėra</option>
           <option value="yra">Yra</option>
         </select>
@@ -205,6 +257,28 @@
           <option value="taip">Taip</option>
         </select>
       </label>
+      <label for="pagalbine_priemone">Pagalbinė priemonė
+        <select id="pagalbine_priemone" name="pagalbine_priemone">
+          <option value="nera">Nėra</option>
+          <option value="lazda">Lazda</option>
+          <option value="vaikstyne">Vaikštynė</option>
+          <option value="vezimelis">Vežimėlis</option>
+        </select>
+      </label>
+      <div class="row">
+        <label for="kontrakturu_rizika">Kontraktūrų rizika
+          <select id="kontrakturu_rizika" name="kontrakturu_rizika">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+        <label for="silpnumas">Silpnumas
+          <select id="silpnumas" name="silpnumas">
+            <option value="ne">Ne</option>
+            <option value="taip">Taip</option>
+          </select>
+        </label>
+      </div>
       <!-- Morse vertinimas -->
       <button type="button" class="secondary" id="openMorseBtn" style="margin-top:10px">
         Atidaryti Morse griuvimų skalę
@@ -227,23 +301,62 @@
     <div class="section">
       <h2>Oda</h2>
       <div class="row">
+        <label for="odos_paraudimas">Odos paraudimas / iššutimas
+          <select id="odos_paraudimas" name="odos_paraudimas">
+            <option value="nera">Nėra</option>
+            <option value="yra">Yra</option>
+          </select>
+        </label>
         <label for="pragulos">Pragulos
           <select id="pragulos" name="pragulos">
             <option value="nera">Nėra</option>
             <option value="yra">Yra</option>
           </select>
         </label>
-        <label for="zaizdos">Žaizdos
-          <select id="zaizdos" name="zaizdos">
-            <option value="nera">Nėra</option>
-            <option value="yra">Yra</option>
-          </select>
-        </label>
       </div>
+      <div id="pragulos_detales" style="display:none;">
+        <div class="row">
+          <label for="pragulos_lokalizacija">Pragulos lokalizacija
+            <input id="pragulos_lokalizacija" name="pragulos_lokalizacija" placeholder="pvz. kryžkaulis, kulnas">
+          </label>
+          <label for="pragulos_stadija">Pragulos stadija
+            <input id="pragulos_stadija" name="pragulos_stadija" placeholder="pvz. I, II, III, IV">
+          </label>
+        </div>
+      </div>
+      <label for="zaizdos">Žaizdos
+        <select id="zaizdos" name="zaizdos">
+          <option value="nera">Nėra</option>
+          <option value="yra">Yra</option>
+        </select>
+      </label>
       <div id="zaizdos_aprasymas" style="display:none;">
+        <div class="row">
+          <label for="zaizdos_lokalizacija">Žaizdos lokalizacija
+            <input id="zaizdos_lokalizacija" name="zaizdos_lokalizacija" placeholder="pvz. blauzda, pilvas">
+          </label>
+          <label for="zaizdos_dydis">Žaizdos dydis
+            <input id="zaizdos_dydis" name="zaizdos_dydis" placeholder="pvz. 2 × 3 cm">
+          </label>
+        </div>
+        <div class="row">
+          <label for="zaizdos_sekrecija">Sekrecija
+            <select id="zaizdos_sekrecija" name="zaizdos_sekrecija">
+              <option value="nera">Nėra</option>
+              <option value="maza">Maža</option>
+              <option value="vidutine">Vidutinė</option>
+              <option value="gausi">Gausi</option>
+            </select>
+          </label>
+          <label for="infekcijos_pozymiai">Infekcijos požymiai
+            <select id="infekcijos_pozymiai" name="infekcijos_pozymiai">
+              <option value="ne">Ne</option>
+              <option value="taip">Taip</option>
+            </select>
+          </label>
+        </div>
         <label for="zaizdos_text">Žaizdos aprašymas
-          <textarea id="zaizdos_text" name="zaizdos_text"
-            placeholder="Lokalizacija, dydis, sekrecija, paraudimas, skausmingumas."></textarea>
+          <textarea id="zaizdos_text" name="zaizdos_text" placeholder="Papildomas aprašymas, paraudimas, skausmingumas."></textarea>
         </label>
       </div>
       <!-- Braden vertinimas -->
@@ -266,6 +379,38 @@
         <label for="skausmoLygis">NRS (0–10)
           <input id="skausmoLygis" name="skausmoLygis" inputmode="numeric" placeholder="pvz. 5">
         </label>
+      </div>
+      <div id="skausmo_detales" style="display:none;">
+        <label for="skausmo_vieta">Skausmo vieta
+          <input id="skausmo_vieta" name="skausmo_vieta" placeholder="pvz. galva, pilvas, žaizdos sritis">
+        </label>
+        <div class="row">
+          <label for="skausmo_pobudis">Skausmo pobūdis
+            <select id="skausmo_pobudis" name="skausmo_pobudis">
+              <option value="">—</option>
+              <option value="maudziantis">Maudžiantis</option>
+              <option value="duriantis">Duriantis</option>
+              <option value="deginantis">Deginantis</option>
+              <option value="spaudziantis">Spaudžiantis</option>
+              <option value="kitas">Kitas</option>
+            </select>
+          </label>
+          <label for="skausmo_trukme">Skausmo trukmė
+            <select id="skausmo_trukme" name="skausmo_trukme">
+              <option value="">—</option>
+              <option value="umus">Ūmus</option>
+              <option value="letinis">Lėtinis</option>
+            </select>
+          </label>
+        </div>
+        <div class="row">
+          <label for="skausma_mazina">Kas mažina skausmą
+            <input id="skausma_mazina" name="skausma_mazina" placeholder="pvz. padėtis, vaistai">
+          </label>
+          <label for="skausma_didina">Kas didina skausmą
+            <input id="skausma_didina" name="skausma_didina" placeholder="pvz. judesys, kosulys">
+          </label>
+        </div>
       </div>
       <button type="button" class="secondary" id="openDvprsBtn" style="margin-top:10px">
         Atidaryti DVPRS skausmo skalę (pacientui)
