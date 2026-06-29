@@ -1,6 +1,7 @@
 /* nurse.js – slaugytojos posto anoniminis palatų / lovų vaizdas */
 
-const NURSE_GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5HkZJT1ohJXkbAGdb-C9SkufhwOXAtt7_E9H9D6hb0UHUlCIsIwYVY2v3jsCH8GTZow/exec';
+const NURSE_GOOGLE_SCRIPT_URL_FALLBACK = 'https://script.google.com/macros/s/AKfycbxODAbmdrmccCYCUkswsFgnz-nrC8clEQQf-5kId3y-3TCqUwsU4pyCze2Jojv43VV_1A/exec';
+let resolvedNurseGoogleScriptUrl = null;
 const ROOMS = ['1', '2', '3', '4', '5'];
 const BEDS = ['1', '2', '3', '4'];
 
@@ -39,12 +40,30 @@ function loadNurseData() {
 }
 
 function fetchAssessments() {
-  return jsonp(`${NURSE_GOOGLE_SCRIPT_URL}?action=list`);
+  return getNurseGoogleScriptUrl().then(url => jsonp(`${url}?action=list`));
 }
 
 function clearBedAssessments(room, bed) {
-  const url = `${NURSE_GOOGLE_SCRIPT_URL}?action=clearBed&palata=${encodeURIComponent(room)}&lova=${encodeURIComponent(bed)}`;
-  return jsonp(url);
+  return getNurseGoogleScriptUrl().then(baseUrl => {
+    const url = `${baseUrl}?action=clearBed&palata=${encodeURIComponent(room)}&lova=${encodeURIComponent(bed)}`;
+    return jsonp(url);
+  });
+}
+
+function getNurseGoogleScriptUrl() {
+  if (resolvedNurseGoogleScriptUrl) return Promise.resolve(resolvedNurseGoogleScriptUrl);
+
+  return fetch('js/generator.js', { cache: 'no-store' })
+    .then(response => response.ok ? response.text() : '')
+    .then(source => {
+      const match = source.match(/const\s+GOOGLE_SCRIPT_URL\s*=\s*['"]([^'"]+)['"]/);
+      resolvedNurseGoogleScriptUrl = match ? match[1] : NURSE_GOOGLE_SCRIPT_URL_FALLBACK;
+      return resolvedNurseGoogleScriptUrl;
+    })
+    .catch(() => {
+      resolvedNurseGoogleScriptUrl = NURSE_GOOGLE_SCRIPT_URL_FALLBACK;
+      return resolvedNurseGoogleScriptUrl;
+    });
 }
 
 function jsonp(url) {

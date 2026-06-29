@@ -29,4 +29,4 @@ Atidarius Web app `/exec` URL naršyklėje, turi būti grąžinama JSON žinutė
 
 ## Slaugytojos puslapis
 
-`nurse.html` duomenis skaito per tą patį Apps Script `/exec` adresą su `?action=list&callback=...` JSONP užklausa. Mygtukas „Naujas pacientas“ kviečia `?action=clearBed&palata=...&lova=...` ir ištrina visus tos lovos vertinimus. Jei pakeičiate `GOOGLE_SCRIPT_URL` paciento formoje, tokį pat `/exec` adresą įrašykite ir `NURSE_GOOGLE_SCRIPT_URL` faile `js/nurse.js`.
+`nurse.html` duomenis skaito per tą patį Apps Script `/exec` adresą su `?action=list&callback=...` JSONP užklausa. Mygtukas „Naujas pacientas“ kviečia `?action=clearBed&palata=...&lova=...` ir ištrina visus tos lovos vertinimus. Slaugytojos puslapis automatiškai perskaito `/exec` adresą iš `js/generator.js` esančio `GOOGLE_SCRIPT_URL`, todėl pakeitus paciento formos URL atskirai `js/nurse.js` keisti nereikia.
