@@ -139,3 +139,8 @@ ul.clean { margin: 8px 0 0; padding-left: 20px; }
   font-size: 12px;
 }
 .new-patient-btn { background: #475569; }
+.scale-note {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}

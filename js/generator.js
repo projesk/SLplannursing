@@ -97,8 +97,14 @@ function buildPsychologicalSentence() {
 function buildRestraintSentence() {
   if (!document.getElementById('suvarzymas')?.checked) return '';
 
-  const nowTime = new Date().toLocaleTimeString('lt-LT', { hour: '2-digit', minute: '2-digit' });
-  return `Dėl galimos žalos sau pačiam ir aplinkiniams, neveikiant kitoms priemonėms pacientas fiksuotas (${nowTime}).`;
+  return `Dėl galimos žalos sau pačiam ir aplinkiniams, neveikiant kitoms priemonėms pacientas fiksuotas (${formatRestraintStartDateTime()}).`;
+}
+
+function formatRestraintStartDateTime() {
+  const date = new Date().toLocaleDateString('lt-LT');
+  const enteredTime = (document.getElementById('fiksacijos_pradzia')?.value || '').trim();
+  const time = enteredTime || new Date().toLocaleTimeString('lt-LT', { hour: '2-digit', minute: '2-digit' });
+  return `${date} ${time}`;
 }
 
 function buildScalesSummary() {
@@ -366,7 +372,10 @@ function collectPlanItems(data) {
 
   if (data.painBlock) addItems(getProblemInterventions(data.painBlock.key));
   if (data.dietCode && data.dietCode !== 'KITA' && data.dietCode !== '—') addItems(getDietPlan(data.dietCode));
-  if (data.isRestrained) addItems(getProblemInterventions('Taikoma fizinė fiksacija'));
+  if (data.isRestrained) {
+    addItems([`Fizinė fiksacija taikoma nuo ${formatRestraintStartDateTime()}.`]);
+    addItems(getProblemInterventions('Taikoma fizinė fiksacija'));
+  }
   if (data.pvExtraItems.length) addItems(uniq(data.pvExtraItems));
 
   return planItems;

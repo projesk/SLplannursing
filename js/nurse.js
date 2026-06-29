@@ -120,7 +120,7 @@ function parseAssessmentText(text) {
     pain: parseNumber(/Skausmas\s*(\d+)\s*\/\s*10/i, text),
     esamos: splitSection(text, 'Esamos problemos', 'Galimos problemos'),
     galimos: splitSection(text, 'Galimos problemos', 'Slaugos planas'),
-    plan: extractPlan(text),
+    plan: dedupePlanLines(extractPlan(text)),
     hasFixation: /Taikoma fizinė fiksacija|Fiksacijos priežastis|fiksuot/i.test(text)
   };
 }
@@ -274,14 +274,70 @@ function renderPatientCard(key) {
 function renderScaleSummary(record) {
   const p = record.parsed;
   const rows = [
-    ['NEWS2', p.news],
-    ['Braden', p.braden],
-    ['MUST', p.must],
-    ['Morse', p.morse],
-    ['Skausmas / NRS', p.pain]
+    ['NEWS2', p.news, interpretNews2(p.news)],
+    ['Braden', p.braden, interpretBraden(p.braden)],
+    ['MUST', p.must, interpretMust(p.must)],
+    ['Morse', p.morse, interpretMorse(p.morse)],
+    ['Skausmas / NRS', p.pain, interpretPain(p.pain)]
   ];
 
-  return `<div class="section"><h3>Skalės ir rodikliai</h3><div class="scale-grid">${rows.map(([label, value]) => `<div class="scale-item"><strong>${label}</strong><br>${value == null ? '—' : escapeHtml(value)}</div>`).join('')}</div></div>`;
+  return `<div class="section"><h3>Skalės ir rodikliai</h3><div class="scale-grid">${rows.map(([label, value, interpretation]) => `
+    <div class="scale-item"><strong>${label}</strong><br>${value == null ? '—' : escapeHtml(value)}<div class="scale-note">${escapeHtml(interpretation)}</div></div>
+  `).join('')}</div></div>`;
+}
+
+
+function dedupePlanLines(plan) {
+  const seen = new Set();
+  return plan
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => {
+      if (!line) return false;
+      const normalized = line.replace(/^•\s*/, '').trim().toLowerCase();
+      if (seen.has(normalized)) return false;
+      seen.add(normalized);
+      return true;
+    })
+    .join('\n');
+}
+
+function interpretNews2(value) {
+  if (value == null) return 'NEWS2 neapskaičiuotas arba nėra duomenų.';
+  if (value >= 7) return 'Aukšta klinikinė rizika.';
+  if (value >= 5) return 'Vidutinė klinikinė rizika.';
+  if (value >= 1) return 'Žema klinikinė rizika / reikia stebėti dinamiką.';
+  return 'Stabili būklė pagal NEWS2.';
+}
+
+function interpretBraden(value) {
+  if (value == null) return 'Braden neįvertinta.';
+  if (value <= 12) return 'Didelė pragulų rizika.';
+  if (value <= 14) return 'Vidutinė pragulų rizika.';
+  if (value <= 18) return 'Padidėjusi pragulų rizika.';
+  return 'Maža pragulų rizika.';
+}
+
+function interpretMust(value) {
+  if (value == null) return 'MUST neįvertinta.';
+  if (value >= 2) return 'Didelė mitybos nepakankamumo rizika.';
+  if (value === 1) return 'Vidutinė mitybos nepakankamumo rizika.';
+  return 'Maža mitybos nepakankamumo rizika.';
+}
+
+function interpretMorse(value) {
+  if (value == null) return 'Morse neįvertinta.';
+  if (value >= 45) return 'Didelė griuvimų rizika.';
+  if (value >= 25) return 'Vidutinė griuvimų rizika.';
+  return 'Maža griuvimų rizika.';
+}
+
+function interpretPain(value) {
+  if (value == null) return 'Skausmo balas nenurodytas.';
+  if (value >= 7) return 'Didelis skausmas.';
+  if (value >= 4) return 'Vidutinis skausmas.';
+  if (value >= 1) return 'Nedidelis skausmas.';
+  return 'Skausmo nėra.';
 }
 
 function renderProblems(title, problems) {
