@@ -1,6 +1,6 @@
 /* generator.js – rezultatų generavimas ir atvaizdavimas */
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxODAbmdrmccCYCUkswsFgnz-nrC8clEQQf-5kId3y-3TCqUwsU4pyCze2Jojv43VV_1A/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5HkZJT1ohJXkbAGdb-C9SkufhwOXAtt7_E9H9D6hb0UHUlCIsIwYVY2v3jsCH8GTZow/exec';
 
 let lastPayload = null;
 
@@ -384,7 +384,51 @@ function formatVitalsLine(vitals) {
   ].filter(Boolean).join(', ') || '-';
 }
 
-// ── Siuntimas į Google Sheets ─────────────────────────────────────
+function collectPlanItems(data) {
+  const seen = new Set();
+  const planItems = [];
+
+  const addItems = items => {
+    items.forEach(item => {
+      if (seen.has(item)) return;
+      seen.add(item);
+      planItems.push(item);
+    });
+  };
+
+  if (data.combineBedRestAndUlcers) addItems(getProblemInterventions('Gulimas režimas ir pragulos'));
+
+  [...data.esamosU, ...data.galimosU].forEach(problem => addItems(getPlanItemsForProblem(problem, data)));
+
+  if (data.painBlock) addItems(getProblemInterventions(data.painBlock.key));
+  if (data.dietCode && data.dietCode !== 'KITA' && data.dietCode !== '—') addItems(getDietPlan(data.dietCode));
+  if (data.isRestrained) addItems(getProblemInterventions('Taikoma fizinė fiksacija'));
+  if (data.pvExtraItems.length) addItems(uniq(data.pvExtraItems));
+
+  return planItems;
+}
+
+function formatVitalsLine(vitals) {
+  const { spo2, sys, dia, map, hr, temp } = vitals;
+  const aksStr = sys != null && dia != null ? `${sys}/${dia} mmHg${map != null ? ` (MAP ${map})` : ''}` : null;
+
+  return [
+    spo2 != null ? `SpO₂ ${spo2} %` : null,
+    aksStr ? `AKS ${aksStr}` : null,
+    hr != null ? `ŠSD ${hr}/min` : null,
+    temp != null ? `T ${Number(temp).toFixed(1)} °C` : null
+  ].filter(Boolean).join(', ') || '-';
+}
+
+// ── Siuntimas per Google Form (neblokuojama ad-blocker) ───────────
+const GFORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScGnmK642MU0iv_jd6lMGUe62uF_q9F3CWwXVMis49nu6oqqg/formResponse';
+const GFORM_ENTRIES = {
+  Laikas: 'entry.289012486',
+  palata:  'entry.438253715',
+  lova:    'entry.326926890',
+  irasas:  'entry.1648745400'
+};
+
 function keltiISistema() {
   if (!lastPayload) {
     alert('Pirmiausia paspauskite „Generuoti".');
