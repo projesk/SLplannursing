@@ -26,3 +26,7 @@
 ## Patikra
 
 Atidarius Web app `/exec` URL naršyklėje, turi būti grąžinama JSON žinutė su `"ok":true`, `spreadsheet` ir `sheet`. Jei matote `"ok":false`, patikrinkite, ar scriptas atidarytas iš Google Sheets, arba užpildykite `CONFIG.SPREADSHEET_ID`. Paciento vertinimo forma siunčia duomenis per `sendBeacon` / `no-cors` POST į Apps Script Web App `/exec` adresą, nes Google Apps Script atsakymas naršyklėje dažnai nėra skaitomas per CORS. Į `GOOGLE_SCRIPT_URL` būtina įklijuoti būtent Apps Script Web App `/exec` URL, ne Google Sheets lentelės URL.
+
+## Slaugytojos puslapis
+
+`nurse.html` duomenis skaito per tą patį Apps Script `/exec` adresą su `?action=list&callback=...` JSONP užklausa. Mygtukas „Naujas pacientas“ kviečia `?action=clearBed&palata=...&lova=...` ir ištrina visus tos lovos vertinimus. Jei pakeičiate `GOOGLE_SCRIPT_URL` paciento formoje, tokį pat `/exec` adresą įrašykite ir `NURSE_GOOGLE_SCRIPT_URL` faile `js/nurse.js`.

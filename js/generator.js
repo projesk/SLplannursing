@@ -384,42 +384,6 @@ function formatVitalsLine(vitals) {
   ].filter(Boolean).join(', ') || '-';
 }
 
-function collectPlanItems(data) {
-  const seen = new Set();
-  const planItems = [];
-
-  const addItems = items => {
-    items.forEach(item => {
-      if (seen.has(item)) return;
-      seen.add(item);
-      planItems.push(item);
-    });
-  };
-
-  if (data.combineBedRestAndUlcers) addItems(getProblemInterventions('Gulimas režimas ir pragulos'));
-
-  [...data.esamosU, ...data.galimosU].forEach(problem => addItems(getPlanItemsForProblem(problem, data)));
-
-  if (data.painBlock) addItems(getProblemInterventions(data.painBlock.key));
-  if (data.dietCode && data.dietCode !== 'KITA' && data.dietCode !== '—') addItems(getDietPlan(data.dietCode));
-  if (data.isRestrained) addItems(getProblemInterventions('Taikoma fizinė fiksacija'));
-  if (data.pvExtraItems.length) addItems(uniq(data.pvExtraItems));
-
-  return planItems;
-}
-
-function formatVitalsLine(vitals) {
-  const { spo2, sys, dia, map, hr, temp } = vitals;
-  const aksStr = sys != null && dia != null ? `${sys}/${dia} mmHg${map != null ? ` (MAP ${map})` : ''}` : null;
-
-  return [
-    spo2 != null ? `SpO₂ ${spo2} %` : null,
-    aksStr ? `AKS ${aksStr}` : null,
-    hr != null ? `ŠSD ${hr}/min` : null,
-    temp != null ? `T ${Number(temp).toFixed(1)} °C` : null
-  ].filter(Boolean).join(', ') || '-';
-}
-
 // ── Siuntimas per Google Form (neblokuojama ad-blocker) ───────────
 const GFORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScGnmK642MU0iv_jd6lMGUe62uF_q9F3CWwXVMis49nu6oqqg/formResponse';
 const GFORM_ENTRIES = {

@@ -40,17 +40,33 @@ function setup() {
 /**
  * Health check endpoint for the deployed Web app.
  */
-function doGet() {
+function doGet(e) {
   try {
     const spreadsheet = getSpreadsheet_();
-    return jsonResponse_({
+    const action = e && e.parameter && e.parameter.action;
+    const callback = e && e.parameter && e.parameter.callback;
+
+    if (action === 'list') {
+      return response_(callback, {
+        ok: true,
+        records: listAssessmentRows_()
+      });
+    }
+
+    if (action === 'clearBed') {
+      const palata = e && e.parameter && e.parameter.palata;
+      const lova = e && e.parameter && e.parameter.lova;
+      return response_(callback, clearBedRows_(palata, lova));
+    }
+
+    return response_(callback, {
       ok: true,
       message: 'Patient assessment endpoint is running.',
       spreadsheet: spreadsheet.getName(),
       sheet: CONFIG.SHEET_NAME
     });
   } catch (error) {
-    return jsonResponse_({
+    return response_(e && e.parameter && e.parameter.callback, {
       ok: false,
       message: 'Endpoint is running, but the spreadsheet is not connected.',
       error: String(error && error.message ? error.message : error)
@@ -145,6 +161,71 @@ function getSpreadsheet_() {
   return spreadsheet;
 }
 
+
+
+function clearBedRows_(palata, lova) {
+  const room = String(palata || '').trim();
+  const bed = String(lova || '').trim();
+  if (!room || !bed) return { ok: false, error: 'Missing palata or lova.' };
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    const sheet = ensureSheet_();
+    const lastRow = sheet.getLastRow();
+    if (lastRow <= 1) return { ok: true, deleted: 0 };
+
+    const values = sheet.getRange(2, 1, lastRow - 1, CONFIG.HEADERS.length).getValues();
+    let deleted = 0;
+
+    for (let i = values.length - 1; i >= 0; i--) {
+      const row = values[i];
+      const raw = parseRawPayload_(row[5]);
+      const rowRoom = String(row[2] || raw.palata || '').trim();
+      const rowBed = String(row[3] || raw.lova || '').trim();
+
+      if (rowRoom === room && rowBed === bed) {
+        sheet.deleteRow(i + 2);
+        deleted++;
+      }
+    }
+
+    return { ok: true, deleted };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function parseRawPayload_(rawText) {
+  if (!rawText) return {};
+  try {
+    return JSON.parse(rawText);
+  } catch (error) {
+    return {};
+  }
+}
+
+function listAssessmentRows_() {
+  const sheet = ensureSheet_();
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return [];
+
+  const values = sheet.getRange(2, 1, lastRow - 1, CONFIG.HEADERS.length).getValues();
+  return values.map(row => {
+    const raw = parseRawPayload_(row[5]);
+
+    return {
+      uploadedAt: row[0] instanceof Date ? row[0].toISOString() : row[0],
+      Laikas: row[1] || raw.Laikas || '',
+      palata: row[2] || raw.palata || '',
+      lova: row[3] || raw.lova || '',
+      irasas: row[4] || raw['įrašas'] || raw.irasas || '',
+      raw
+    };
+  }).filter(record => record.palata && record.lova);
+}
+
 function ensureSheet_() {
   const spreadsheet = getSpreadsheet_();
   let sheet = spreadsheet.getSheetByName(CONFIG.SHEET_NAME);
@@ -209,8 +290,19 @@ function validatePayload_(payload) {
   if (!payload['įrašas'] && !payload.irasas) throw new Error('Payload is missing the assessment text.');
 }
 
+function response_(callback, data) {
+  if (callback) return jsonpResponse_(callback, data);
+  return jsonResponse_(data);
+}
+
 function jsonResponse_(data) {
   return ContentService
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function jsonpResponse_(callback, data) {
+  return ContentService
+    .createTextOutput(`${callback}(${JSON.stringify(data)});`)
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
