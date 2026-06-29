@@ -325,7 +325,15 @@ function formatVitalsLine(vitals) {
   ].filter(Boolean).join(', ') || '-';
 }
 
-// ── Siuntimas į Google Sheets ─────────────────────────────────────
+// ── Siuntimas per Google Form (neblokuojama ad-blocker) ───────────
+const GFORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScGnmK642MU0iv_jd6lMGUe62uF_q9F3CWwXVMis49nu6oqqg/formResponse';
+const GFORM_ENTRIES = {
+  Laikas: 'entry.289012486',
+  palata:  'entry.438253715',
+  lova:    'entry.326926890',
+  irasas:  'entry.1648745400'
+};
+
 function keltiISistema() {
   if (!lastPayload) {
     alert('Pirmiausia paspauskite „Generuoti".');
