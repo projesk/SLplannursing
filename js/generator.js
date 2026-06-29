@@ -1,0 +1,376 @@
+/* generator.js – rezultatų generavimas ir atvaizdavimas */
+
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxODAbmdrmccCYCUkswsFgnz-nrC8clEQQf-5kId3y-3TCqUwsU4pyCze2Jojv43VV_1A/exec';
+
+let lastPayload = null;
+
+function valOrDash(v) { return (v == null || v === '') ? '-' : v; }
+function uniq(arr) { return [...new Set(arr)].filter(Boolean); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Pagrindinis generatorius ──────────────────────────────────────
+function generateResults() {
+  document.getElementById('statusOk').style.display  = 'none';
+  document.getElementById('statusErr').style.display = 'none';
+  document.getElementById('results').innerHTML = '';
+
+  const f   = document.forms['nursingForm'];
+  const ctx = detectProblems(f);
+  if (ctx.error) return;
+
+  renderOutput(f, ctx);
+}
+
+// ── Atvaizdavimas ─────────────────────────────────────────────────
+function renderOutput(f, ctx) {
+  const { esamos, galimos, pills, vitals, highSys30, painBlock, addExtrasForHelpDueToDizziness } = ctx;
+  const { spo2, temp, sys, dia, hr, map } = vitals;
+
+  const esamosU = uniq(esamos);
+  const galimosU = uniq(galimos);
+
+  // ── Gyvybiniai rodikliai ──
+  const hasVitals = (spo2 != null || sys != null || hr != null || temp != null);
+  const aksStr = (sys != null && dia != null)
+    ? `${sys}/${dia} mmHg${map != null ? ` (MAP ${map})` : ''}` : null;
+
+  const news = calcNEWS2({
+    rr:   toNum(f['rr'].value),
+    spo2, onO2: f['o2'].value === 'taip',
+    temp, sys, hr,
+    avpu: f['avpu'].value
+  });
+
+  // ── Psichologinė būsena ──
+  const pb_ramus    = document.getElementById('ramus').checked;
+  const pb_orient   = document.getElementById('orientuotas').checked;
+  const pb_dementia = document.getElementById('demencija') && document.getElementById('demencija').checked;
+  const pb_agresyv  = document.getElementById('agresyvus')  && document.getElementById('agresyvus').checked;
+  const psichoParts = [
+    pb_ramus  ? 'ramus'       : 'neramus',
+    pb_orient ? 'orientuotas' : 'neorientuotas'
+  ];
+  if (pb_dementia) psichoParts.push('demencija');
+  if (pb_agresyv)  psichoParts.push('agresyvus');
+  const psichoSakinys = 'Pacientas ' + psichoParts.join(', ') + '.';
+
+  // ── Suvaržymas ──
+  const isRestrained = document.getElementById('suvarzymas') && document.getElementById('suvarzymas').checked;
+  const nowTime = new Date().toLocaleTimeString('lt-LT', { hour: '2-digit', minute: '2-digit' });
+  const restraintSentence = isRestrained
+    ? `Dėl galimos žalos sau pačiam ir aplinkiniams, neveikiant kitoms priemonėms pacientas fiksuotas (${nowTime}).`
+    : '';
+
+  // ── Dieta ──
+  const dietCode   = (document.getElementById('dieta_kodas').value || '').trim();
+  const dietCustom = (dietCode === 'KITA') ? ((document.getElementById('dieta_kita').value || '').trim()) : '';
+  const hasDiet = (dietCode && dietCode !== 'KITA' && dietCode !== '—') || (dietCode === 'KITA' && dietCustom);
+
+  // ── Skalių santrauka ──
+  const scalesSummary = [];
+  if (typeof bradenScore === 'number' && bradenScore !== null)
+    scalesSummary.push(`Braden: ${bradenScore} bal.`);
+  if (typeof mustScore === 'number' && mustScore !== null)
+    scalesSummary.push(`MUST: ${mustScore} bal.`);
+  if (typeof morseScore === 'number' && morseScore !== null)
+    scalesSummary.push(`Morse: ${morseScore} bal.`);
+
+  // ── Pirminis vertinimas ──
+  const pvPlanSets = {
+    cv:   ['AKS sekimas', 'Skysčių balanso stebėjimas', 'Edemų stebėjimas', 'Dusulio stebėjimas', 'Mitybos/dietos pritaikymas'],
+    resp: ['SpO₂ stebėjimas'],
+    endo: ['Glikemijos kontrolė', 'Mitybos/dietos pritaikymas'],
+    rh:   ['Skysčių balanso stebėjimas', 'Skysčių kiekio sekimas', 'AKS sekimas']
+  };
+  const pvSelected = [], pvExtraItems = [];
+  if (document.getElementById('pv_cv').checked)        { pvSelected.push('Širdies–kraujotakos');  pvExtraItems.push(...pvPlanSets.cv); }
+  if (document.getElementById('pv_resp').checked)      { pvSelected.push('Kvėpavimo');            pvExtraItems.push(...pvPlanSets.resp); }
+  if (document.getElementById('pv_endo_cd').checked)   { pvSelected.push('Endokrininės (CD)');    pvExtraItems.push(...pvPlanSets.endo); }
+  if (document.getElementById('pv_renal_hep').checked) { pvSelected.push('Inkstų/kepenų');        pvExtraItems.push(...pvPlanSets.rh); }
+
+  const pvInfection = (document.getElementById('pv_infection').value || '').trim();
+  const pvAllergy   = (document.getElementById('pv_allergy').value   || '').trim();
+  const pvSummaryParts = [];
+  if (pvSelected.length) pvSummaryParts.push('Sritys: ' + pvSelected.join(', '));
+  if (pvInfection)       pvSummaryParts.push('Infekcinės ligos: ' + pvInfection);
+  if (pvAllergy)         pvSummaryParts.push('Alergijos: ' + pvAllergy);
+  const pvSummaryText = pvSummaryParts.join(' | ');
+  const hasPV = pvSummaryParts.length > 0;
+
+  const combineBedRestAndUlcers = (f['mobilumas'].value === 'lova' && f['pragulos'].value === 'yra');
+
+  // ──────────────────────────────────────────────────────────────────
+  // HTML STRUKTŪRA
+  // ──────────────────────────────────────────────────────────────────
+  let html = '';
+
+  // 1) GYVYBINIAI RODIKLIAI + NEWS2
+  {
+    let vHtml = '';
+    const vitalsRows = [];
+    if (spo2 != null) vitalsRows.push(`SpO₂ ${spo2} %`);
+    if (aksStr)       vitalsRows.push(`AKS ${aksStr}`);
+    if (hr != null)   vitalsRows.push(`ŠSD ${hr}/min`);
+    if (temp != null) vitalsRows.push(`T ${Number(temp).toFixed(1)} °C`);
+
+    if (vitalsRows.length) {
+      vHtml += `<p>${vitalsRows.join(' &nbsp;|&nbsp; ')}</p>`;
+    }
+    vHtml += `<p><strong>NEWS2:</strong> ${news.score} bal. &mdash; ${esc(news2Text(news.score, news.hasCritical))}</p>`;
+    if (scalesSummary.length) {
+      vHtml += `<p>${scalesSummary.map(s => `<span class="pill">${esc(s)}</span>`).join('')}</p>`;
+    }
+
+    html += `<h3>Gyvybiniai rodikliai</h3><div class="planas">${vHtml}</div>`;
+  }
+
+  // 2) PSICHOLOGINĖ BŪSENA
+  {
+    let pHtml = `<p>${esc(psichoSakinys)}</p>`;
+    if (restraintSentence) pHtml += `<p>${esc(restraintSentence)}</p>`;
+    html += `<h3>Psichologinė būsena</h3><div class="planas">${pHtml}</div>`;
+  }
+
+  // 3) ESAMOS PROBLEMOS
+  html += `<h3>Esamos problemos</h3><div class="planas"><ul>${
+    esamosU.length
+      ? esamosU.map(p => `<li>${esc(p)}</li>`).join('')
+      : '<li>Nenustatyta</li>'
+  }</ul></div>`;
+
+  // 4) GALIMOS PROBLEMOS
+  html += `<h3>Galimos problemos</h3><div class="planas"><ul>${
+    galimosU.length
+      ? galimosU.map(p => `<li>${esc(p)}</li>`).join('')
+      : '<li>Nenustatyta</li>'
+  }</ul></div>`;
+
+  // 5) SLAUGOS PLANAS
+  html += '<h3>Slaugos planas</h3>';
+  let planBlocksCount = 0;
+
+  // 5a) Kombinuotas lovos režimas + pragulos
+  if (combineBedRestAndUlcers) {
+    const items = getProblemInterventions('Gulimas režimas ir pragulos');
+    if (items.length) {
+      html += `<div class="planas"><h4>Gulimas režimas ir pragulos</h4><ul>${
+        items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`;
+      planBlocksCount++;
+    }
+  }
+
+  // 5b) Kitos esamos ir galimos problemos
+  [...esamosU, ...galimosU].forEach(p => {
+    if (combineBedRestAndUlcers && (p === 'Pragulos' || p === 'Rizika praguloms dėl lovos režimo')) return;
+    if (addExtrasForHelpDueToDizziness && p === 'Rizika griuvimui dėl galvos svaigimo') return;
+    if (p === 'Taikoma fizinė fiksacija') return;
+
+    const items = [...getProblemInterventions(p)];
+    if (!items.length) return;
+
+    if (p.startsWith('Padidėjęs kraujo spaudimas') && highSys30) items.push('AKS sekimas kas 30 min.');
+    if (addExtrasForHelpDueToDizziness && p === 'Judėjimas su pagalba') {
+      items.push('AKS sekimas');
+      items.push('Griuvimų profilaktika');
+    }
+
+    html += `<div class="planas"><h4>${esc(p)}</h4><ul>${
+      items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`;
+    planBlocksCount++;
+  });
+
+  // 5c) Skausmo planas
+  if (painBlock) {
+    const items = getProblemInterventions(painBlock.key);
+    if (items.length) {
+      html += `<div class="planas"><h4>Skausmas (${painBlock.score}/10)</h4><ul>${
+        items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`;
+      planBlocksCount++;
+    }
+  }
+
+  // 5d) Dieta
+  const dietItems = (dietCode && dietCode !== 'KITA' && dietCode !== '—') ? getDietPlan(dietCode) : [];
+  if (dietItems.length) {
+    html += `<div class="planas"><h4>Dieta ${esc(dietCode)}</h4><ul>${
+      dietItems.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`;
+    planBlocksCount++;
+  }
+
+  // 5e) Fizinis suvaržymas
+  if (isRestrained) {
+    const items = getProblemInterventions('Taikoma fizinė fiksacija');
+    if (items.length) {
+      html += `<div class="planas"><h4>Fizinis suvaržymas</h4><ul>${
+        items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`;
+      planBlocksCount++;
+    }
+  }
+
+  if (planBlocksCount === 0) {
+    html += '<div class="planas"><p>Intervencijų nenustatyta</p></div>';
+  }
+
+  // 6) PIRMINIS VERTINIMAS – tik jei įvesta
+  if (hasPV || pvExtraItems.length) {
+    let pvHtml = '';
+    if (pvSummaryText) pvHtml += `<p>${esc(pvSummaryText)}</p>`;
+    if (pvExtraItems.length) {
+      const extra = uniq(pvExtraItems);
+      pvHtml += `<ul>${extra.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`;
+    }
+    html += `<h3>Pirminis vertinimas</h3><div class="planas">${pvHtml}</div>`;
+  }
+
+  if (hasDiet) {
+    const dietaUi = (dietCode === 'KITA') ? dietCustom : dietCode;
+    html += `<p class="hint">Pacientui skirta <strong>${esc(dietaUi)}</strong> dieta</p>`;
+  }
+
+  // ── DIAGNOSTIKA (laikina) ──
+  const dbgData = _lib();
+  const dbgKeys = esamosU.slice(0,3).map(k => {
+    const items = getProblemInterventions(k);
+    return `"${k}": ${items.length} interv.`;
+  });
+  html += `<div class="hint" style="color:#b91c1c;font-size:11px">
+    <strong>DEBUG:</strong> CARE_LIBRARY_DATA = ${dbgData ? 'ĮKELTA ('+Object.keys(dbgData.problems).length+' prob.)' : 'NULL ❌'}<br>
+    Raktu tikrinimas: ${dbgKeys.join(' | ') || '(nėra esamų problemų)'}
+  </div>`;
+
+  document.getElementById('results').innerHTML = html;
+
+  // ── Payload (JSON įrašas) ──
+  _buildPayload(f, {
+    esamosU, galimosU, combineBedRestAndUlcers,
+    addExtrasForHelpDueToDizziness, highSys30,
+    painBlock, dietCode, isRestrained, pvExtraItems,
+    vitals,
+    psichoSakinys, restraintSentence, hasDiet,
+    dietaNote: (dietCode === 'KITA') ? dietCustom : dietCode,
+    pvSummaryText, news, scalesSummary
+  });
+}
+
+// ── Payload (tekstinis įrašas) ─────────────────────────────────────
+function _buildPayload(f, d) {
+  const seenPlan = new Set();
+  const planItems = [];
+
+  function addPlan(key) {
+    getProblemInterventions(key).forEach(it => {
+      if (!seenPlan.has(it)) { seenPlan.add(it); planItems.push(it); }
+    });
+  }
+
+  if (d.combineBedRestAndUlcers) addPlan('Gulimas režimas ir pragulos');
+
+  [...d.esamosU, ...d.galimosU].forEach(p => {
+    if (d.combineBedRestAndUlcers && (p === 'Pragulos' || p === 'Rizika praguloms dėl lovos režimo')) return;
+    if (d.addExtrasForHelpDueToDizziness && p === 'Rizika griuvimui dėl galvos svaigimo') return;
+    if (p === 'Taikoma fizinė fiksacija') return;
+
+    const items = [...getProblemInterventions(p)];
+    if (p.startsWith('Padidėjęs kraujo spaudimas') && d.highSys30) items.push('AKS sekimas kas 30 min.');
+    if (d.addExtrasForHelpDueToDizziness && p === 'Judėjimas su pagalba') {
+      items.push('AKS sekimas'); items.push('Griuvimų profilaktika');
+    }
+    items.forEach(it => { if (!seenPlan.has(it)) { seenPlan.add(it); planItems.push(it); } });
+  });
+
+  if (d.painBlock) addPlan(d.painBlock.key);
+  if (d.dietCode && d.dietCode !== 'KITA' && d.dietCode !== '—') {
+    getDietPlan(d.dietCode).forEach(it => {
+      if (!seenPlan.has(it)) { seenPlan.add(it); planItems.push(it); }
+    });
+  }
+  if (d.isRestrained) addPlan('Taikoma fizinė fiksacija');
+  if (d.pvExtraItems.length) uniq(d.pvExtraItems).forEach(it => {
+    if (!seenPlan.has(it)) { seenPlan.add(it); planItems.push(it); }
+  });
+
+  const { spo2, sys, dia, map, hr, temp } = d.vitals;
+  const aksStr = (sys != null && dia != null)
+    ? `${sys}/${dia} mmHg${map != null ? ` (MAP ${map})` : ''}` : '-';
+
+  const vitalsLine = [
+    spo2 != null ? `SpO₂ ${spo2} %` : null,
+    (sys != null && dia != null) ? `AKS ${aksStr}` : null,
+    hr   != null ? `ŠSD ${hr}/min` : null,
+    temp != null ? `T ${Number(temp).toFixed(1)} °C` : null
+  ].filter(Boolean).join(', ') || '-';
+
+  let irasas =
+    `Gyvybiniai rodikliai:\n${vitalsLine}\n` +
+    `NEWS2: ${d.news.score} bal. – ${news2Text(d.news.score, d.news.hasCritical)}\n`;
+
+  if (d.scalesSummary.length) irasas += `Vertinimo skalės: ${d.scalesSummary.join(', ')}\n`;
+
+  irasas += `\n${d.psichoSakinys}\n`;
+  if (d.restraintSentence) irasas += `${d.restraintSentence}\n`;
+
+  irasas +=
+    `\nEsamos problemos:\n${d.esamosU.length ? d.esamosU.join('; ') : '-'}\n\n` +
+    `Galimos problemos:\n${d.galimosU.length ? d.galimosU.join('; ') : '-'}\n\n` +
+    `Slaugos planas:\n${planItems.length ? planItems.map(i => '• ' + i).join('\n') : '-'}`;
+
+  if (d.hasDiet) irasas += `\n\nPacientui skirta ${d.dietaNote} dieta`;
+  if (d.pvSummaryText) irasas += `\n\nPirminis vertinimas:\n${d.pvSummaryText}`;
+
+  lastPayload = {
+    Laikas:  new Date().toLocaleString('lt-LT'),
+    palata:  (f['palata'].value || '').trim(),
+    lova:    (f['lova'].value   || '').trim(),
+    irasas:  irasas
+  };
+
+  document.getElementById('results').insertAdjacentHTML('beforeend',
+    `<div class="mono">${esc(JSON.stringify(lastPayload, null, 2))}</div>`);
+}
+
+// ── Siuntimas per Google Form (neblokuojama ad-blocker) ───────────
+const GFORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScGnmK642MU0iv_jd6lMGUe62uF_q9F3CWwXVMis49nu6oqqg/formResponse';
+const GFORM_ENTRIES = {
+  Laikas: 'entry.289012486',
+  palata:  'entry.438253715',
+  lova:    'entry.326926890',
+  irasas:  'entry.1648745400'
+};
+
+function keltiISistema() {
+  if (!lastPayload) { alert('Pirmiausia paspauskite „Generuoti".'); return; }
+
+  // Sukuriame paslėptą iframe ir formą – veikia net su Brave Shields įjungtu
+  const iframe = document.createElement('iframe');
+  iframe.name = '_gform_target';
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = GFORM_URL;
+  form.target = '_gform_target';
+
+  Object.entries(GFORM_ENTRIES).forEach(([key, entry]) => {
+    const input = document.createElement('input');
+    input.type  = 'hidden';
+    input.name  = entry;
+    input.value = lastPayload[key] || '';
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+
+  // Valymas po 4 sek.
+  setTimeout(() => {
+    document.body.removeChild(form);
+    document.body.removeChild(iframe);
+  }, 4000);
+
+  // Rodome sėkmės pranešimą
+  document.getElementById('statusErr').style.display = 'none';
+  document.getElementById('statusOk').style.display  = 'block';
+}
+
+function spausdinti() { window.print(); }
