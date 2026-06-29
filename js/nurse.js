@@ -282,7 +282,7 @@ function renderScaleSummary(record) {
   ];
 
   return `<div class="section"><h3>Skalės ir rodikliai</h3><div class="scale-grid">${rows.map(([label, value, interpretation]) => `
-    <div class="scale-item"><strong>${label}</strong><br>${value == null ? '—' : escapeHtml(value)}<div class="scale-note">${escapeHtml(interpretation)}</div></div>
+    <div class="scale-item"><strong>${label}</strong><br><span class="scale-value">${value == null ? '—' : escapeHtml(value)}</span><div class="scale-note"><strong>Vertinimas:</strong> ${escapeHtml(interpretation)}</div></div>
   `).join('')}</div></div>`;
 }
 
@@ -371,6 +371,19 @@ function calculateRisk(record) {
   return { level: 'green', label: 'Žema rizika' };
 }
 
+
+function renderEditableList(title, id, items) {
+  const value = items.length ? items.map(item => `• ${item}`).join('\n') : '-';
+  return `<div class="section"><h3>${title}</h3><div id="${id}" class="editable-list">${escapeHtml(value)}</div></div>`;
+}
+
+function parseEditableList(text) {
+  return text
+    .split('\n')
+    .map(line => line.replace(/^•\s*/, '').trim())
+    .filter(line => line && line !== '-');
+}
+
 function openPlanModal(record) {
   if (!record) return;
   nurseState.activeRecord = record;
@@ -379,12 +392,14 @@ function openPlanModal(record) {
   document.getElementById('modalTitle').textContent = `Palata ${record.palata} · Lova ${record.lova}`;
   document.getElementById('modalBody').innerHTML = `
     <div id="printArea">
+      <div class="handwrite-line"><strong>Pacientas:</strong><span></span></div>
       <p><strong>Vertinimo laikas:</strong> ${escapeHtml(record.time || record.uploadedAt || '-')}</p>
       <p><strong>Rizika:</strong> <span class="risk-pill risk-${risk.level}">${risk.label}</span></p>
       ${renderScaleSummary(record)}
-      ${renderProblems('Esamos slaugos problemos', record.parsed.esamos)}
-      ${renderProblems('Galimos problemos / rizikos', record.parsed.galimos)}
+      ${renderEditableList('Esamos slaugos problemos', 'currentProblemsText', record.parsed.esamos)}
+      ${renderEditableList('Galimos problemos / rizikos', 'possibleProblemsText', record.parsed.galimos)}
       <div class="section"><h3>Pilnas sugeneruotas slaugos planas</h3><div id="planText" class="plan-text">${escapeHtml(plan)}</div></div>
+      <div class="handwrite-line nurse-signature"><strong>Bendrosios praktikos slaugytojas:</strong><span></span></div>
     </div>
   `;
   document.getElementById('editPlanBtn').hidden = false;
@@ -401,6 +416,8 @@ function enablePlanEdit() {
   const plan = document.getElementById('planText');
   if (!plan) return;
   plan.setAttribute('contenteditable', 'true');
+  document.getElementById('currentProblemsText')?.setAttribute('contenteditable', 'true');
+  document.getElementById('possibleProblemsText')?.setAttribute('contenteditable', 'true');
   plan.focus();
   document.getElementById('editPlanBtn').hidden = true;
   document.getElementById('savePlanBtn').hidden = false;
@@ -411,7 +428,11 @@ function savePlanEdit() {
   if (!plan || !nurseState.activeRecord) return;
   nurseState.activeRecord.editedPlan = plan.textContent.trim();
   nurseState.activeRecord.parsed.plan = nurseState.activeRecord.editedPlan;
+  nurseState.activeRecord.parsed.esamos = parseEditableList(document.getElementById('currentProblemsText')?.textContent || '');
+  nurseState.activeRecord.parsed.galimos = parseEditableList(document.getElementById('possibleProblemsText')?.textContent || '');
   plan.setAttribute('contenteditable', 'false');
+  document.getElementById('currentProblemsText')?.setAttribute('contenteditable', 'false');
+  document.getElementById('possibleProblemsText')?.setAttribute('contenteditable', 'false');
   document.getElementById('editPlanBtn').hidden = false;
   document.getElementById('savePlanBtn').hidden = true;
 }

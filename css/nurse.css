@@ -144,3 +144,27 @@ ul.clean { margin: 8px 0 0; padding-left: 20px; }
   font-size: 12px;
   margin-top: 4px;
 }
+.scale-value { font-weight: 700; }
+.editable-list {
+  white-space: pre-wrap;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+.editable-list[contenteditable="true"] {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  background: #fff;
+}
+.handwrite-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin: 8px 0 14px;
+}
+.handwrite-line span {
+  flex: 1;
+  border-bottom: 1px solid #111827;
+  min-height: 24px;
+}
+.nurse-signature { margin-top: 22px; }
