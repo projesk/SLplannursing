@@ -420,7 +420,7 @@ function enablePlanEdit() {
   replaceProblemBlockWithTextarea('currentProblemsText');
   replaceProblemBlockWithTextarea('possibleProblemsText');
 
-  plan.focus();
+  document.getElementById('currentProblemsTextEdit')?.focus();
   document.getElementById('editPlanBtn').hidden = true;
   document.getElementById('savePlanBtn').hidden = false;
 }
@@ -433,6 +433,8 @@ function replaceProblemBlockWithTextarea(id) {
   textarea.id = `${id}Edit`;
   textarea.className = 'editable-textarea';
   textarea.value = block.textContent.trim();
+  textarea.placeholder = 'Kiekvieną problemą ar riziką rašykite naujoje eilutėje.';
+  textarea.spellcheck = true;
   textarea.setAttribute('aria-label', id === 'currentProblemsText' ? 'Esamos slaugos problemos' : 'Galimos problemos ir rizikos');
   block.replaceWith(textarea);
 }
@@ -448,6 +450,8 @@ function savePlanEdit() {
   nurseState.activeRecord.parsed.plan = nurseState.activeRecord.editedPlan;
   nurseState.activeRecord.parsed.esamos = parseEditableList(currentText);
   nurseState.activeRecord.parsed.galimos = parseEditableList(possibleText);
+
+  if (nurseState.selectedKey) renderPatientCard(nurseState.selectedKey);
 
   plan.setAttribute('contenteditable', 'false');
   replaceTextareaWithProblemBlock('currentProblemsText', nurseState.activeRecord.parsed.esamos);
