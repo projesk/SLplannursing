@@ -226,3 +226,10 @@ ul.clean { margin: 8px 0 0; padding-left: 20px; }
   margin-top: 18px;
   padding-top: 0;
 }
+
+.scale-context p {
+  margin: 4px 0 8px;
+}
+.scale-context:empty {
+  display: none;
+}

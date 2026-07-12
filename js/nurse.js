@@ -120,6 +120,8 @@ function parseAssessmentText(text) {
     morse: parseNumber(/Morse:\s*(\d+)\s*bal\./i, text),
     pain: parseNumber(/Skausmas\s*(\d+)\s*\/\s*10/i, text),
     vitals: extractVitalsLine(text),
+    psychological: extractPsychologicalLine(text),
+    restraint: extractRestraintLine(text),
     esamos: splitSection(text, 'Esamos problemos', 'Galimos problemos'),
     galimos: splitSection(text, 'Galimos problemos', 'Slaugos planas'),
     plan: dedupePlanLines(extractPlan(text)),
@@ -136,6 +138,16 @@ function extractVitalsLine(text) {
   const match = text.match(/Gyvybiniai rodikliai:\n([^\n]*)/i);
   const value = match ? match[1].trim() : '';
   return value && value !== '-' ? value : '';
+}
+
+function extractPsychologicalLine(text) {
+  const match = text.match(/(?:^|\n)(Pacientas[^\n]*\.)/i);
+  return match ? match[1].trim() : '';
+}
+
+function extractRestraintLine(text) {
+  const match = text.match(/(?:^|\n)(Dėl galimos žalos[^\n]*\.)/i);
+  return match ? match[1].trim() : '';
 }
 
 function splitSection(text, start, end) {
@@ -289,17 +301,22 @@ function renderScaleSummary(record, options = {}) {
     ['Skausmas / NRS', p.pain, interpretPain(p.pain)]
   ].filter(([, value]) => !options.hideUnassessed || value != null);
 
-  if (!rows.length && !p.vitals) return '';
+  const contextLines = [
+    p.vitals ? `<p><strong>Rodikliai:</strong> ${escapeHtml(p.vitals)}</p>` : '',
+    p.psychological ? `<p><strong>Būsena:</strong> ${escapeHtml(p.psychological)}</p>` : '',
+    p.restraint ? `<p><strong>Fiksacija:</strong> ${escapeHtml(p.restraint)}</p>` : ''
+  ].filter(Boolean).join('');
+
+  if (!rows.length && !contextLines) return '';
 
   if (options.compact) {
-    const vitalsLine = p.vitals ? `<p><strong>Rodikliai:</strong> ${escapeHtml(p.vitals)}</p>` : '';
     const scaleLines = rows.map(([label, value, interpretation]) =>
       `<p>${formatScaleLine(label, value, interpretation)}</p>`
     ).join('');
-    return `<div class="section scale-summary compact-scale-summary"><h3>Skalės ir rodikliai</h3><div class="compact-scale-list">${vitalsLine}${scaleLines}</div></div>`;
+    return `<div class="section scale-summary compact-scale-summary"><h3>Skalės ir rodikliai</h3><div class="compact-scale-list">${contextLines}${scaleLines}</div></div>`;
   }
 
-  return `<div class="section scale-summary"><h3>Skalės ir rodikliai</h3><div class="scale-grid">${rows.map(([label, value, interpretation]) => `
+  return `<div class="section scale-summary"><h3>Skalės ir rodikliai</h3><div class="scale-context">${contextLines}</div><div class="scale-grid">${rows.map(([label, value, interpretation]) => `
     <div class="scale-item${value == null ? ' scale-unassessed' : ''}"><strong>${label}</strong><br><span class="scale-value">${value == null ? '—' : escapeHtml(value)}</span><div class="scale-note"><strong>Vertinimas:</strong> ${escapeHtml(interpretation)}</div></div>
   `).join('')}</div></div>`;
 }
