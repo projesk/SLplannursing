@@ -110,6 +110,9 @@ function detectProblems(f) {
   const m       = f['mityba'].value;
   const rij     = f['rijimas'].value;
   const suvalgo = f['suvalgo'].value;
+  const pagalbaValgant = f['pagalba_valgant'] ? f['pagalba_valgant'].value : 'ne';
+  const suvalgomasKiekis = f['suvalgomas_kiekis'] ? f['suvalgomas_kiekis'].value : 'visa';
+  const skysciai = f['skysciai'] ? f['skysciai'].value : 'pakankamas';
 
   if (m === 'burna') {
     if (rij === 'taip') {
@@ -123,6 +126,10 @@ function detectProblems(f) {
     esamos.push('Mityba per PEG');
   }
 
+  if (pagalbaValgant === 'taip') esamos.push('Savarankiško maitinimosi sutrikimas');
+  if (suvalgomasKiekis === 'maziau_50') esamos.push('Nepakankama mityba');
+  if (skysciai === 'nepakankamas') esamos.push('Nepakankamas skysčių vartojimas / Dehidratacijos rizika');
+
   // ── MUST (mitybos rizika iš skalės) ──
   if (typeof mustScore === 'number' && mustScore !== null) {
     pills.push(classifyPill(`MUST ${mustScore} bal.`,
@@ -133,6 +140,7 @@ function detectProblems(f) {
 
   // ── Šalinimas ──
   if (f['kateteris'].value === 'yra') esamos.push('Šlapimo kateteris');
+  if (f['stoma'] && f['stoma'].value === 'yra') esamos.push('Stomos priežiūros poreikis');
   if (f['slapimo_nelaikymas'] && f['slapimo_nelaikymas'].value === 'taip') esamos.push('Šlapimo nelaikymas');
   if (f['ismatu_nelaikymas'] && f['ismatu_nelaikymas'].value === 'taip')   esamos.push('Išmatų nelaikymas');
   if (f['viduriai'].value === 'taip')     esamos.push('Vidurių užkietėjimas');
@@ -145,14 +153,23 @@ function detectProblems(f) {
   const bedRest  = (f['mobilumas'].value === 'lova');
   const needHelp = (f['mobilumas'].value === 'pagalba');
   const hasPressureUlcer = (f['pragulos'].value === 'yra');
+  const pagalbinePriemone = f['pagalbine_priemone'] ? f['pagalbine_priemone'].value : 'nera';
+  const hasAssistiveDevice = ['lazda', 'vaikstyne', 'vezimelis'].includes(pagalbinePriemone);
+  const hasMobilityImpairment = needHelp || bedRest || hasAssistiveDevice;
 
   if (needHelp) {
     esamos.push('Judėjimas su pagalba');
+    esamos.push('Sutrikęs mobilumas');
     galimos.push('Rizika griuvimui dėl pagalbos poreikio');
   } else if (bedRest) {
+    esamos.push('Visiškas priklausomumas nuo slaugos');
     galimos.push('Rizika praguloms dėl lovos režimo');
     galimos.push('Kontraktūrų rizika');
   }
+
+  if (hasAssistiveDevice) esamos.push('Sutrikęs mobilumas');
+  if (f['kontrakturu_rizika'] && f['kontrakturu_rizika'].value === 'taip') galimos.push('Kontraktūrų rizika');
+  if (f['silpnumas'] && f['silpnumas'].value === 'taip' && hasMobilityImpairment) galimos.push('Griuvimų rizika');
 
   // ── Morse (griuvimų rizika iš skalės) ──
   if (typeof morseScore === 'number' && morseScore !== null) {
@@ -171,7 +188,13 @@ function detectProblems(f) {
   }
 
   // ── Oda / pragulos ──
-  if (hasPressureUlcer) esamos.push('Pragulos');
+  if (f['odos_paraudimas'] && f['odos_paraudimas'].value === 'yra') {
+    esamos.push('Odos vientisumo pažeidimas / Odos pažeidimo rizika');
+  }
+  if (hasPressureUlcer) {
+    esamos.push('Pragula');
+    esamos.push('Pragulos');
+  }
 
   // ── Braden (pragulų rizika iš skalės) ──
   if (typeof bradenScore === 'number' && bradenScore !== null) {
@@ -184,8 +207,10 @@ function detectProblems(f) {
   // ── Žaizda ──
   if (f['zaizdos'].value === 'yra') {
     const apr = (f['zaizdos_text'].value || '').trim();
+    esamos.push('Žaizda / odos vientisumo pažeidimas');
     esamos.push('Odos vientisumo pažeidimas (žaizda)' + (apr ? (' – ' + apr) : ''));
   }
+  if (f['infekcijos_pozymiai'] && f['infekcijos_pozymiai'].value === 'taip') galimos.push('Odos infekcijos rizika');
 
   // ── Psichinė būklė ──
   const pb_ramus  = document.getElementById('ramus')       && document.getElementById('ramus').checked;
@@ -205,12 +230,22 @@ function detectProblems(f) {
   // ── Suvaržymas ──
   if (document.getElementById('suvarzymas') && document.getElementById('suvarzymas').checked) {
     esamos.push('Taikoma fizinė fiksacija');
+    if (f['fiksacijos_priezastis'] && f['fiksacijos_priezastis'].value === 'kateteriai_zondai') {
+      galimos.push('Kateterių ar zondų išsitraukimo rizika');
+    }
+    if (f['fiksacijos_priezastis'] && f['fiksacijos_priezastis'].value === 'agresyvus_save_zalojantis') {
+      galimos.push('Savęs arba kitų sužalojimo rizika');
+    }
+    if (f['apsaugines_priemones'] && f['apsaugines_priemones'].value === 'taikoma') {
+      esamos.push('Apsauginių priemonių taikymas');
+    }
   }
 
   // ── Skausmas ──
   let painBlock = null;
-  if (f['skausmas'].value === 'taip') {
-    const val = toNum(f['skausmoLygis'].value);
+  const painValue = toNum(f['skausmoLygis'].value);
+  if (f['skausmas'].value === 'taip' || (painValue != null && painValue > 0)) {
+    const val = painValue;
     if (val == null || val < 0 || val > 10) {
       alert('Įveskite skausmo intensyvumą (0–10).');
       document.getElementById('skausmoLygis').focus();
@@ -223,6 +258,8 @@ function detectProblems(f) {
     else if (val >= 7 && val <= 10) key = 'Didelis skausmas (7–10/10)';
     const sev = val >= 7 ? 'bad' : val >= 4 ? 'warn' : 'ok';
     pills.push(classifyPill(`Skausmas ${val}/10`, sev));
+    if (f['skausmo_trukme'] && f['skausmo_trukme'].value === 'umus') esamos.push('Ūmus skausmas');
+    if (f['skausmo_trukme'] && f['skausmo_trukme'].value === 'letinis') esamos.push('Lėtinis skausmas');
     if (key) painBlock = { score: val, key };
   }
 
