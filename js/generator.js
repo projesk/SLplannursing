@@ -258,9 +258,12 @@ function buildCarePlanHtml(data) {
   let html = '<h3>Slaugos planas</h3>';
   let blocks = 0;
 
+  const seenInterventions = new Set();
+
   const addBlock = (title, items) => {
-    if (!items.length) return;
-    html += `<div class="planas"><h4>${esc(title)}</h4><ul>${items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`;
+    const uniqueItems = dedupeInterventionLines(items, seenInterventions);
+    if (!uniqueItems.length) return;
+    html += `<div class="planas"><h4>${esc(title)}</h4><ul>${uniqueItems.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`;
     blocks++;
   };
 
@@ -355,43 +358,28 @@ function buildPayload(f, data) {
   document.getElementById('results').insertAdjacentHTML('beforeend', `<div class="mono">${esc(JSON.stringify(lastPayload, null, 2))}</div>`);
 }
 
-function collectPlanItems(data) {
-  const seen = new Set();
-  const planItems = [];
 
-  const addItems = items => {
-    items.forEach(item => {
-      if (seen.has(item)) return;
-      seen.add(item);
-      planItems.push(item);
-    });
-  };
+function dedupeInterventionLines(items, seen = new Set()) {
+  const unique = [];
 
-  if (data.combineBedRestAndUlcers) addItems(getProblemInterventions('Gulimas režimas ir pragulos'));
+  items.forEach(item => {
+    const normalized = normalizeInterventionLine(item);
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    unique.push(item);
+  });
 
-  [...data.esamosU, ...data.galimosU].forEach(problem => addItems(getPlanItemsForProblem(problem, data)));
-
-  if (data.painBlock) addItems(getProblemInterventions(data.painBlock.key));
-  if (data.dietCode && data.dietCode !== 'KITA' && data.dietCode !== '—') addItems(getDietPlan(data.dietCode));
-  if (data.isRestrained) {
-    addItems([`Fizinė fiksacija taikoma nuo ${formatRestraintStartDateTime()}.`]);
-    addItems(getProblemInterventions('Taikoma fizinė fiksacija'));
-  }
-  if (data.pvExtraItems.length) addItems(uniq(data.pvExtraItems));
-
-  return planItems;
+  return unique;
 }
 
-function formatVitalsLine(vitals) {
-  const { spo2, sys, dia, map, hr, temp } = vitals;
-  const aksStr = sys != null && dia != null ? `${sys}/${dia} mmHg${map != null ? ` (MAP ${map})` : ''}` : null;
-
-  return [
-    spo2 != null ? `SpO₂ ${spo2} %` : null,
-    aksStr ? `AKS ${aksStr}` : null,
-    hr != null ? `ŠSD ${hr}/min` : null,
-    temp != null ? `T ${Number(temp).toFixed(1)} °C` : null
-  ].filter(Boolean).join(', ') || '-';
+function normalizeInterventionLine(line) {
+  return String(line || '')
+    .replace(/^\s*•\s*/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[.,;:]+$/g, '')
+    .trim()
+    .toLowerCase();
 }
 
 function collectPlanItems(data) {
@@ -399,11 +387,7 @@ function collectPlanItems(data) {
   const planItems = [];
 
   const addItems = items => {
-    items.forEach(item => {
-      if (seen.has(item)) return;
-      seen.add(item);
-      planItems.push(item);
-    });
+    planItems.push(...dedupeInterventionLines(items, seen));
   };
 
   if (data.combineBedRestAndUlcers) addItems(getProblemInterventions('Gulimas režimas ir pragulos'));

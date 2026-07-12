@@ -328,6 +328,17 @@ function formatScaleLine(label, value, interpretation) {
 }
 
 
+
+function normalizePlanLine(line) {
+  return String(line || '')
+    .replace(/^\s*•\s*/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[.,;:]+$/g, '')
+    .trim()
+    .toLowerCase();
+}
+
 function dedupePlanLines(plan) {
   const seen = new Set();
   return plan
@@ -335,7 +346,7 @@ function dedupePlanLines(plan) {
     .map(line => line.trim())
     .filter(line => {
       if (!line) return false;
-      const normalized = line.replace(/^•\s*/, '').trim().toLowerCase();
+      const normalized = normalizePlanLine(line);
       if (seen.has(normalized)) return false;
       seen.add(normalized);
       return true;
