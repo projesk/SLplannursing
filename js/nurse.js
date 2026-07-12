@@ -271,7 +271,7 @@ function renderPatientCard(key) {
   });
 }
 
-function renderScaleSummary(record) {
+function renderScaleSummary(record, options = {}) {
   const p = record.parsed;
   const rows = [
     ['NEWS2', p.news, interpretNews2(p.news)],
@@ -279,7 +279,9 @@ function renderScaleSummary(record) {
     ['MUST', p.must, interpretMust(p.must)],
     ['Morse', p.morse, interpretMorse(p.morse)],
     ['Skausmas / NRS', p.pain, interpretPain(p.pain)]
-  ];
+  ].filter(([, value]) => !options.hideUnassessed || value != null);
+
+  if (!rows.length) return '';
 
   return `<div class="section scale-summary"><h3>Skalės ir rodikliai</h3><div class="scale-grid">${rows.map(([label, value, interpretation]) => `
     <div class="scale-item${value == null ? ' scale-unassessed' : ''}"><strong>${label}</strong><br><span class="scale-value">${value == null ? '—' : escapeHtml(value)}</span><div class="scale-note"><strong>Vertinimas:</strong> ${escapeHtml(interpretation)}</div></div>
@@ -395,7 +397,7 @@ function openPlanModal(record) {
       <div class="handwrite-line"><strong>Pacientas:</strong><span></span></div>
       <p><strong>Vertinimo laikas:</strong> ${escapeHtml(record.time || record.uploadedAt || '-')}</p>
       <p><strong>Rizika:</strong> <span class="risk-pill risk-${risk.level}">${risk.label}</span></p>
-      ${renderScaleSummary(record)}
+      ${renderScaleSummary(record, { hideUnassessed: true })}
       ${renderEditableList('Esamos slaugos problemos', 'currentProblemsText', record.parsed.esamos)}
       ${renderEditableList('Galimos problemos / rizikos', 'possibleProblemsText', record.parsed.galimos)}
       <div class="section"><h3>Pilnas sugeneruotas slaugos planas</h3><div id="planText" class="plan-text">${escapeHtml(plan)}</div></div>
