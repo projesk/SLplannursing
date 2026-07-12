@@ -1,6 +1,6 @@
 /* generator.js – rezultatų generavimas ir atvaizdavimas */
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxODAbmdrmccCYCUkswsFgnz-nrC8clEQQf-5kId3y-3TCqUwsU4pyCze2Jojv43VV_1A/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5HkZJT1ohJXkbAGdb-C9SkufhwOXAtt7_E9H9D6hb0UHUlCIsIwYVY2v3jsCH8GTZow/exec';
 
 let lastPayload = null;
 
@@ -393,7 +393,15 @@ function formatVitalsLine(vitals) {
   ].filter(Boolean).join(', ') || '-';
 }
 
-// ── Siuntimas į Google Sheets ─────────────────────────────────────
+// ── Siuntimas per Google Form (neblokuojama ad-blocker) ───────────
+const GFORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScGnmK642MU0iv_jd6lMGUe62uF_q9F3CWwXVMis49nu6oqqg/formResponse';
+const GFORM_ENTRIES = {
+  Laikas: 'entry.289012486',
+  palata:  'entry.438253715',
+  lova:    'entry.326926890',
+  irasas:  'entry.1648745400'
+};
+
 function keltiISistema() {
   if (!lastPayload) {
     alert('Pirmiausia paspauskite „Generuoti".');
