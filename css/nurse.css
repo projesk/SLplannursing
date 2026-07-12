@@ -206,3 +206,23 @@ ul.clean { margin: 8px 0 0; padding-left: 20px; }
 @media print {
   body.print-modal .preview-note { display: none !important; }
 }
+
+.compact-scale-list p {
+  margin: 4px 0;
+}
+.print-preview-content .scale-grid {
+  display: block;
+}
+.print-preview-content .scale-item,
+.print-preview-content .editable-list,
+.print-preview-content .plan-text {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+.print-preview-content .section {
+  border-top: 0;
+  margin-top: 18px;
+  padding-top: 0;
+}

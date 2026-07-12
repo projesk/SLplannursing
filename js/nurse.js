@@ -119,6 +119,7 @@ function parseAssessmentText(text) {
     must: parseNumber(/MUST:\s*(\d+)\s*bal\./i, text),
     morse: parseNumber(/Morse:\s*(\d+)\s*bal\./i, text),
     pain: parseNumber(/Skausmas\s*(\d+)\s*\/\s*10/i, text),
+    vitals: extractVitalsLine(text),
     esamos: splitSection(text, 'Esamos problemos', 'Galimos problemos'),
     galimos: splitSection(text, 'Galimos problemos', 'Slaugos planas'),
     plan: dedupePlanLines(extractPlan(text)),
@@ -129,6 +130,12 @@ function parseAssessmentText(text) {
 function parseNumber(regex, text) {
   const match = text.match(regex);
   return match ? Number(match[1]) : null;
+}
+
+function extractVitalsLine(text) {
+  const match = text.match(/Gyvybiniai rodikliai:\n([^\n]*)/i);
+  const value = match ? match[1].trim() : '';
+  return value && value !== '-' ? value : '';
 }
 
 function splitSection(text, start, end) {
@@ -282,11 +289,25 @@ function renderScaleSummary(record, options = {}) {
     ['Skausmas / NRS', p.pain, interpretPain(p.pain)]
   ].filter(([, value]) => !options.hideUnassessed || value != null);
 
-  if (!rows.length) return '';
+  if (!rows.length && !p.vitals) return '';
+
+  if (options.compact) {
+    const vitalsLine = p.vitals ? `<p><strong>Rodikliai:</strong> ${escapeHtml(p.vitals)}</p>` : '';
+    const scaleLines = rows.map(([label, value, interpretation]) =>
+      `<p>${formatScaleLine(label, value, interpretation)}</p>`
+    ).join('');
+    return `<div class="section scale-summary compact-scale-summary"><h3>Skalės ir rodikliai</h3><div class="compact-scale-list">${vitalsLine}${scaleLines}</div></div>`;
+  }
 
   return `<div class="section scale-summary"><h3>Skalės ir rodikliai</h3><div class="scale-grid">${rows.map(([label, value, interpretation]) => `
     <div class="scale-item${value == null ? ' scale-unassessed' : ''}"><strong>${label}</strong><br><span class="scale-value">${value == null ? '—' : escapeHtml(value)}</span><div class="scale-note"><strong>Vertinimas:</strong> ${escapeHtml(interpretation)}</div></div>
   `).join('')}</div></div>`;
+}
+
+function formatScaleLine(label, value, interpretation) {
+  const safeLabel = label === 'Skausmas / NRS' ? 'Skausmas' : label;
+  const scoreText = label === 'Skausmas / NRS' ? `${value}/10` : `${value} bal.`;
+  return `<strong>${escapeHtml(safeLabel)}:</strong> ${escapeHtml(scoreText)} — ${escapeHtml(interpretation)}`;
 }
 
 
@@ -403,15 +424,15 @@ function renderPlanModalBody(record, options = {}) {
     ? `Spausdinimo peržiūra · Palata ${record.palata} · Lova ${record.lova}`
     : `Palata ${record.palata} · Lova ${record.lova}`;
   document.getElementById('modalBody').innerHTML = `
-    <div id="printArea">
+    <div id="printArea" class="${options.isPreview ? 'print-preview-content' : ''}">
       ${options.isPreview ? '<p class="preview-note">Spausdinimo peržiūra: nevertinti testai šiame lape nerodomi.</p>' : ''}
       <div class="handwrite-line"><strong>Pacientas:</strong><span></span></div>
       <p><strong>Vertinimo laikas:</strong> ${escapeHtml(record.time || record.uploadedAt || '-')}</p>
       <p><strong>Rizika:</strong> <span class="risk-pill risk-${risk.level}">${risk.label}</span></p>
-      ${renderScaleSummary(record, { hideUnassessed: options.hideUnassessedScales })}
+      ${renderScaleSummary(record, { hideUnassessed: options.hideUnassessedScales, compact: options.isPreview })}
       ${renderEditableList('Esamos slaugos problemos', 'currentProblemsText', record.parsed.esamos)}
       ${renderEditableList('Galimos problemos / rizikos', 'possibleProblemsText', record.parsed.galimos)}
-      <div class="section"><h3>Pilnas sugeneruotas slaugos planas</h3><div id="planText" class="plan-text">${escapeHtml(plan)}</div></div>
+      <div class="section"><h3>Slaugos planas</h3><div id="planText" class="plan-text">${escapeHtml(plan)}</div></div>
       <div class="handwrite-line nurse-signature"><strong>Bendrosios praktikos slaugytojas:</strong><span></span></div>
     </div>
   `;
