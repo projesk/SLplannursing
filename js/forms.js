@@ -22,6 +22,7 @@ function initForms() {
       document.getElementById('dieta_kodas').value === 'KITA' ? 'block' : 'none';
   });
 
+
   // Reset mygtukas
   document.getElementById('resetBtn').addEventListener('click', resetForm);
 
