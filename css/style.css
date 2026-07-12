@@ -103,7 +103,7 @@ select {
 /* ── CHECKBOXES ── */
 .checks {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
   gap: 10px;
   margin-top: 8px;
 }
@@ -114,6 +114,10 @@ select {
   margin: 0;
   color: var(--text);
   font-size: 14px;
+  white-space: nowrap;
+}
+.checks label input {
+  flex: 0 0 auto;
 }
 .checks input { width: auto; margin: 0; }
 

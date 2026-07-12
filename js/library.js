@@ -30,8 +30,3 @@ function getDietPlan(code) {
   return (data.dietPlan[code] || []);
 }
 
-function getDischargeTemplates() {
-  const data = _lib();
-  if (!data) return [];
-  return data.dischargeTemplates || [];
-}
