@@ -652,6 +652,138 @@
         "Informuoti gydytoją apie savęs žalojimo riziką."
       ],
       "evaluation": "Savęs sužalojimo epizodų nėra, pacientas stebimas pagal poreikį."
+    },
+    "Savarankiško maitinimosi sutrikimas": {
+      "system": "Mityba",
+      "goal": "Užtikrinti saugų ir pakankamą paciento maitinimą pagal savarankiškumo lygį.",
+      "interventions": [
+        "Įvertinti, kokios pagalbos pacientui reikia valgant.",
+        "Padėti pasiruošti valgymui ir maitinti pagal poreikį.",
+        "Stebėti suvalgomo maisto kiekį ir rijimo saugumą.",
+        "Skatinti paciento savarankiškumą pagal galimybes."
+      ],
+      "evaluation": "Pacientas gauna reikiamą pagalbą valgant, maitinimas vyksta saugiai."
+    },
+    "Nepakankamas skysčių vartojimas / Dehidratacijos rizika": {
+      "system": "Mityba / skysčiai",
+      "goal": "Užtikrinti pakankamą skysčių suvartojimą ir mažinti dehidratacijos riziką.",
+      "interventions": [
+        "Sekti išgeriamų skysčių kiekį.",
+        "Skatinti gerti skysčius mažais kiekiais dažniau, jei nėra kontraindikacijų.",
+        "Stebėti dehidratacijos požymius: burnos sausumą, sumažėjusį diurezę, silpnumą.",
+        "Informuoti gydytoją, jei skysčių suvartojimas išlieka nepakankamas."
+      ],
+      "evaluation": "Skysčių suvartojimas pakankamas arba dehidratacijos rizika sumažinta."
+    },
+    "Stomos priežiūros poreikis": {
+      "system": "Šalinimas",
+      "goal": "Užtikrinti tinkamą stomos priežiūrą ir išvengti odos pažeidimų.",
+      "interventions": [
+        "Apžiūrėti stomą ir odą aplink ją kiekvienos priežiūros metu.",
+        "Keisti stomos priežiūros priemones pagal poreikį ir įstaigos tvarką.",
+        "Stebėti sekreto / turinio kiekį, spalvą ir kvapą.",
+        "Mokyti pacientą ar artimuosius stomos priežiūros principų."
+      ],
+      "evaluation": "Stoma prižiūrėta, oda aplink stomą be dirginimo ar infekcijos požymių."
+    },
+    "Griuvimų rizika": {
+      "system": "Sauga / judėjimas",
+      "goal": "Sumažinti griuvimo riziką ir užtikrinti saugų judėjimą.",
+      "interventions": [
+        "Įvertinti aplinkos saugumą ir pašalinti kliūtis.",
+        "Užtikrinti, kad pagalbinė priemonė būtų pasiekiama ir naudojama tinkamai.",
+        "Padėti pacientui keliantis ir judant pagal poreikį.",
+        "Paaiškinti pacientui kviesti pagalbą prieš stojantis."
+      ],
+      "evaluation": "Griuvimų neįvyko, pacientas juda saugiau."
+    },
+    "Pragula": {
+      "system": "Oda",
+      "goal": "Skatinti pragulos gijimą ir išvengti pažeidimo progresavimo.",
+      "interventions": [
+        "Įvertinti pragulos lokalizaciją, stadiją ir aplinkinę odą.",
+        "Keisti paciento padėtį pagal individualų planą.",
+        "Naudoti spaudimą mažinančias priemones.",
+        "Atlikti žaizdos / pragulos priežiūrą pagal paskyrimus."
+      ],
+      "evaluation": "Pragula neprogresuoja, oda prižiūrima, gijimo požymiai stebimi."
+    },
+    "Odos vientisumo pažeidimas / Odos pažeidimo rizika": {
+      "system": "Oda",
+      "goal": "Apsaugoti odą nuo pažeidimo progresavimo ir skatinti gijimą.",
+      "interventions": [
+        "Kasdien vertinti paraudimo, iššutimo ar maceracijos vietas.",
+        "Palaikyti odą švarią ir sausą.",
+        "Naudoti odos apsaugos priemones pagal poreikį.",
+        "Mažinti spaudimą ir trintį pažeidimo vietose."
+      ],
+      "evaluation": "Odos būklė neblogėja, paraudimas ar iššutimas mažėja."
+    },
+    "Žaizda / odos vientisumo pažeidimas": {
+      "system": "Oda",
+      "goal": "Užtikrinti žaizdos priežiūrą ir mažinti komplikacijų riziką.",
+      "interventions": [
+        "Įvertinti žaizdos lokalizaciją, dydį, sekreciją ir aplinkinę odą.",
+        "Tvarstyti žaizdą aseptiškai pagal paskyrimus.",
+        "Stebėti skausmą, sekrecijos pokyčius ir gijimo dinamiką.",
+        "Dokumentuoti žaizdos būklės pokyčius."
+      ],
+      "evaluation": "Žaizda prižiūrima, infekcijos ar blogėjimo požymiai laiku pastebimi."
+    },
+    "Odos infekcijos rizika": {
+      "system": "Oda / infekcijų kontrolė",
+      "goal": "Laiku atpažinti infekcijos požymius ir mažinti infekcijos plitimo riziką.",
+      "interventions": [
+        "Stebėti paraudimą, patinimą, skausmą, karštį, pūlingą sekreciją ir kvapą.",
+        "Laikytis rankų higienos ir aseptikos principų.",
+        "Informuoti gydytoją apie infekcijos požymius.",
+        "Stebėti temperatūrą ir bendrą paciento būklę."
+      ],
+      "evaluation": "Infekcijos požymiai stebimi, apie pokyčius informuota laiku."
+    },
+    "Ūmus skausmas": {
+      "system": "Skausmas",
+      "goal": "Sumažinti ūmų skausmą ir užtikrinti paciento komfortą.",
+      "interventions": [
+        "Vertinti skausmą pagal NRS prieš ir po intervencijų.",
+        "Taikyti paskirtas medikamentines ir nemedikamentines skausmo mažinimo priemones.",
+        "Stebėti, kas skausmą didina ar mažina.",
+        "Informuoti gydytoją, jei skausmas nemažėja."
+      ],
+      "evaluation": "Ūmus skausmas sumažėjo arba kontroliuojamas."
+    },
+    "Lėtinis skausmas": {
+      "system": "Skausmas",
+      "goal": "Padėti pacientui valdyti lėtinį skausmą ir palaikyti funkcionalumą.",
+      "interventions": [
+        "Reguliariai vertinti skausmo intensyvumą, pobūdį ir poveikį veiklai.",
+        "Skatinti taikyti individualiai veiksmingas skausmo mažinimo priemones.",
+        "Stebėti vaistų poveikį ir nepageidaujamas reakcijas.",
+        "Informuoti gydytoją apie nepakankamą skausmo kontrolę."
+      ],
+      "evaluation": "Lėtinis skausmas valdomas, pacientas žino skausmo mažinimo priemones."
+    },
+    "Savęs arba kitų sužalojimo rizika": {
+      "system": "Sauga",
+      "goal": "Užtikrinti paciento ir aplinkinių saugumą.",
+      "interventions": [
+        "Stebėti paciento elgesį ir savęs ar kitų žalojimo riziką.",
+        "Pašalinti potencialiai pavojingus daiktus.",
+        "Bendrauti ramiai ir mažinti dirgiklius aplinkoje.",
+        "Informuoti gydytoją apie agresyvų ar save žalojantį elgesį."
+      ],
+      "evaluation": "Pacientas ir aplinkiniai saugūs, rizikos epizodai valdomi."
+    },
+    "Apsauginių priemonių taikymas": {
+      "system": "Sauga",
+      "goal": "Saugiai taikyti apsaugines priemones ir išvengti sužalojimų.",
+      "interventions": [
+        "Įvertinti apsauginių priemonių poreikį ir taikymo saugumą.",
+        "Stebėti paciento būklę ir komfortą taikant apsaugines priemones.",
+        "Reguliariai tikrinti odą ir kraujotaką, jei priemonės riboja judėjimą.",
+        "Dokumentuoti priemonių taikymo laiką ir stebėseną."
+      ],
+      "evaluation": "Apsauginės priemonės taikomos saugiai, komplikacijų nėra."
     }
   },
   "dietPlan": {
@@ -668,191 +800,5 @@
     "B": [],
     "Lac": [],
     "NPB": ["Pacientas nieko nevalgo ir negeria, kol kitaip nenurodė gydytojas."]
-  },
-  "dischargeTemplates": [
-    {
-      "id": "gerklu_mikroskopine",
-      "name": "Po mikroskopinės gerklų operacijos (balso klosčių dariniai)",
-      "items": [
-        "Tylos režimas 5 d.",
-        "Balsą tausojantis režimas 2 sav. (nekalbėti pakeltu tonu, nešnibždėti, nedainuoti).",
-        "Namų režimas 2 sav.; vengti kelionių, dūmų, dulkių, karštų patalpų.",
-        "Riboti fizinį krūvį 2 sav., nekelti sunkių daiktų.",
-        "Vengti pirčių, karštų vonių, baseinų, soliariumų 2 sav.",
-        "Ryte ir vakare matuoti temperatūrą."
-      ]
-    },
-    {
-      "id": "konchoplastika",
-      "name": "Po nosies kriauklių operacijos (konchoplastika)",
-      "items": [
-        "Ryte ir vakare matuoti temperatūrą; ≥38°C – kreiptis į šeimos gydytoją (nevartoti aspirino).",
-        "Nepūsti nosies ~1 sav.",
-        "Namų režimas 2 sav.; vengti kelionių, dūmų, dulkių, karštų patalpų.",
-        "Riboti fizinį krūvį 2 sav., nekelti sunkių daiktų; vengti kontaktų 1 mėn.",
-        "Vengti pirčių, karštų vonių, baseinų, soliariumų 2 sav.",
-        "Plauti ir drėkinti nosį kaip nurodė gydytojas.",
-        "Užsitęsus karščiavimui ar prasidėjus gausiam kraujavimui – skubi pagalba."
-      ]
-    },
-    {
-      "id": "nosikauliu_luziai_rinoseptoplastika",
-      "name": "Po nosikaulių lūžių atstatymo / po rinoseptoplastikos",
-      "items": [
-        "Ryte ir vakare matuoti temperatūrą; ≥38°C – kreiptis į šeimos gydytoją (nevartoti aspirino).",
-        "Nepūsti nosies ~1 sav.",
-        "Namų režimas 2 sav. (vengti kelionių, dūmų, dulkių, karštų patalpų).",
-        "Riboti fizinį krūvį 2 sav., nekelti sunkių daiktų.",
-        "Jei yra rizika užsigauti nosį – vengti kontaktų 1–1,5 mėn.",
-        "Vengti pirčių, karštų vonių, baseinų, soliariumų 2 sav.",
-        "Jei buvo gipsas po lūžių atstatymo – nešioti iki 10 d.; sušlapus nebedėti atgal.",
-        "Plauti ir drėkinti nosį kaip nurodė gydytojas.",
-        "Užsitęsus karščiavimui ar prasidėjus gausiam kraujavimui – kreiptis į skubią pagalbą."
-      ]
-    },
-    {
-      "id": "septoplastika_funkcine_rinoplastika",
-      "name": "Po septoplastikos / funkcinės rinoplastikos",
-      "items": [
-        "Ryte ir vakare matuoti temperatūrą; ≥38°C – kreiptis į šeimos gydytoją (nevartoti aspirino).",
-        "Nepūsti nosies ~1 sav.",
-        "Galimas nosies užgulimas pirmomis dienomis – tai normalu.",
-        "Namų režimas 2 sav. (vengti kelionių, dūmų, dulkių, karštų patalpų).",
-        "Riboti fizinį krūvį 2 sav., nekelti sunkių daiktų.",
-        "Vengti kontaktų / smūgio į nosį 1 mėn.",
-        "Vengti pirčių, karštų vonių, baseinų, soliariumų 2 sav.",
-        "Plauti ir drėkinti nosį kaip nurodė gydytojas.",
-        "Užsitęsus karščiavimui ar prasidėjus gausiam kraujavimui – skubi pagalba."
-      ]
-    },
-    {
-      "id": "tonzilektomija",
-      "name": "Po tonzilių pašalinimo",
-      "items": [
-        "Skausmui – Paracetamolis arba Ibuprofenas 2–3 k./d. (nevartoti Aspirino, Ketanovo).",
-        "Galimas karščiavimas iki 37,5°C ~2 sav.; ≥38°C ilgiau nei 3 d. – kreiptis į šeimos gydytoją.",
-        "2 sav. vengti karšto, aštraus, rūgštaus, kieto, traškaus maisto.",
-        "Rekomenduojamas skystas/trintas, baltymingas maistas 2 sav.",
-        "Gerti ≥125 ml kas 2 val. (negazuoti gėrimai).",
-        "2 sav. nesimaudyti karštoje vonioje, neplauti galvos (galima dušas, jei gerai jaučiasi).",
-        "Dantis valyti švelniai, su mažai pastos; neskalauti burnos.",
-        "2 sav. riboti fizinį krūvį; nekelti sunkių daiktų; vengti sporto, pirčių, baseinų, soliariumų.",
-        "10 d. vengti krenkštimo/kosėjimo.",
-        "Jei atsiranda kraujavimas – šaldyti kaklo sritį, laikyti galvą palenktą į priekį; jei kraujo ≥15 ml ar „kavos tirščių" vėmimas – skubi pagalba.",
-        "Vaikui – rekomenduojama suaugusiojo priežiūra naktį 2 sav."
-      ]
-    },
-    {
-      "id": "adenoidektomija",
-      "name": "Po adenoidų pašalinimo",
-      "items": [
-        "Galimas nedidelis gerklės skausmas kelias dienas; skausmui – Paracetamolis arba Ibuprofenas (nevartoti Aspirino, Ketanovo).",
-        "Galimas karščiavimas iki 37,5°C ~2 sav.; ≥38°C ilgiau nei 3 d. – kreiptis į šeimos gydytoją.",
-        "Pirmas 3 paras vengti karšto, aštraus, rūgštaus, kieto, traškaus maisto.",
-        "Rekomenduojamas skystas/trintas maistas 3 paras.",
-        "Gerti ≥125 ml kas 2 val. (negazuoti gėrimai).",
-        "1 sav. nesimaudyti karštoje vonioje, neplauti galvos (galima dušas, jei gerai jaučiasi).",
-        "Dantis valyti švelniai, su mažai pastos; neskalauti burnos.",
-        "2 sav. riboti fizinį krūvį; vengti sporto, pirčių, baseinų, soliariumų.",
-        "10 d. vengti krenkštimo/kosėjimo.",
-        "Jei prasideda kraujavimas iš nosies ar su seilėmis – šaldyti kaktos srityje, galvą laikyti palenktą į priekį; jei kraujo ≥15 ml – skubi pagalba.",
-        "Vaikui – rekomenduojama suaugusiojo priežiūra naktį 2 sav."
-      ]
-    },
-    {
-      "id": "tonziles_adenoidai_bendra",
-      "name": "Bendra po tonzilių / adenoidų pašalinimo",
-      "items": [
-        "Skausmui – Paracetamolis arba Ibuprofenas 2–3 k./d. (nevartoti Aspirino, Ketanovo).",
-        "Galimas karščiavimas iki 37,5°C ~2 sav.; ≥38°C ilgiau nei 3 d. – kreiptis į šeimos gydytoją.",
-        "2 sav. vengti karšto, aštraus, rūgštaus, kieto, traškaus maisto.",
-        "Rekomenduojamas skystas/trintas maistas (ypač pirmas dienas).",
-        "Gerti ≥125 ml kas 2 val. (negazuoti gėrimai).",
-        "1–2 sav. nesimaudyti karštoje vonioje, neplauti galvos (galima dušas, jei gerai jaučiasi).",
-        "Dantis valyti švelniai; neskalauti burnos.",
-        "2 sav. riboti fizinį krūvį; nekelti sunkių daiktų; vengti sporto, pirčių, baseinų, soliariumų.",
-        "10 d. vengti krenkštimo/kosėjimo.",
-        "Jei atsiranda reikšmingas kraujavimas (≥15 ml) ar „kavos tirščių" vėmimas – skubi pagalba.",
-        "Vaikui – rekomenduojama suaugusiojo priežiūra naktį 2 sav."
-      ]
-    },
-    {
-      "id": "tracheostoma_trumpai",
-      "name": "Tracheostoma – pagrindinės rekomendacijos (trumpai)",
-      "items": [
-        "Tracheostominį vamzdelį keisti 1 k./parą arba kaip nurodė gydytojas.",
-        "Keisti nedelsiant, jei atsiranda užsikimšimo požymių (dusulys, triukšmingas kvėpavimas). Laikytis rankų higienos.",
-        "Kasdien apžiūrėti ir nuplauti odą aplink stomą; gerai nusausinti.",
-        "~1 mėn. dėti tvarstį po vamzdeliu; keisti, kai susitepa.",
-        "Vamzdelis turi laikytis tvirtai, bet nespausti kaklo (2 pirštai).",
-        "Susitepusius raištelius pakeisti.",
-        "Tracheostomą visada pridengti švaria marle / filtru.",
-        "Galima drėkinti įkvepiamą orą (drėgna marlė, fiziologinis tirpalas – jei paskirta).",
-        "Maudantis saugoti, kad vanduo nepatektų į vamzdelį.",
-        "Turėti atsarginius vamzdelius (jei paskirta).",
-        "Jei vamzdelis užsikimšo – bandyti atkosėti sėdint, pasilenkus į priekį; jei nepavyksta – skubi pagalba.",
-        "Į gydytoją kreiptis, jei pasirodė kraujas iš tracheostomos; atsirado paraudimas/patinimas aplink stomą; pakito sekretas ar atsirado blogas kvapas; prasidėjo karščiavimas; didėjantis dusulys."
-      ]
-    },
-    {
-      "id": "zaizda_isorine_bendra",
-      "name": "Bendros rekomendacijos po operacijų su išorine žaizda",
-      "items": [
-        "Tvarstį laikyti švarų ir sausą; keisti kasdien ar susitepus.",
-        "Naudoti gydytojo ar vaistininko rekomenduotą antiseptiką.",
-        "Nešlapinti 24–48 val.; vėliau trumpas dušas be trynimo.",
-        "Nemirkyti žaizdos 2 sav.",
-        "Neliesti nešvariomis rankomis, nekrapštyti šašo.",
-        "Riboti fizinį krūvį 7–14 d.",
-        "Kreiptis į gydytoją esant paraudimui, pūliavimui ar karščiavimas ≥38°C."
-      ]
-    },
-    {
-      "id": "uzausio_pjuvis",
-      "name": "Po operacijos su užausio pjūviu",
-      "items": [
-        "Tvarstį laikyti sausą; keisti kasdien ar susitepus.",
-        "Naudoti gydytojo ar vaistininko rekomenduotą antiseptiką.",
-        "Nešlapinti 24–48 val.; neplauti galvos.",
-        "Žaizdos nemirkyti 2 sav.",
-        "Vengti spaudimo (ausinės, akiniai, kepurės).",
-        "Miegoti ant priešingos pusės 7–10 d.",
-        "Saugoti nuo saulės 1–2 mėn.",
-        "Riboti fizinį krūvį 7–14 d.",
-        "Skubiai kreiptis, jei paraudimas, pūliavimas, žaizdos prasiskyrimas ar karščiavimas ≥38°C."
-      ]
-    },
-    {
-      "id": "kaklo_pjuvis",
-      "name": "Po operacijos su kaklo pjūviu",
-      "items": [
-        "Tvarstį laikyti sausą; keisti kasdien.",
-        "Naudoti gydytojo ar vaistininko rekomenduotą antiseptiką.",
-        "Nešlapinti 24–48 val.",
-        "Žaizdos nemirkyti 2 sav.",
-        "Vengti spaudimo (aptemptos apykaklės, šalikai).",
-        "Vengti staigių kaklo judesių 7–10 d.",
-        "Saugoti nuo saulės 1–2 mėn.",
-        "Riboti fizinį krūvį 7–14 d.",
-        "Skubiai kreiptis, jei paraudimas, pūliavimas, žaizdos prasiskyrimas ar karščiavimas ≥38°C."
-      ]
-    },
-    {
-      "id": "veido_zaizda",
-      "name": "Po operacijos su žaizda veido srityje",
-      "items": [
-        "Tvarstį laikyti sausą; keisti kasdien.",
-        "Nešlapinti 24–48 val.",
-        "Naudoti gydytojo ar vaistininko rekomenduotą antiseptiką.",
-        "Žaizdos nemirkyti 2 sav.",
-        "Neliesti žaizdos nešvariomis rankomis.",
-        "Nekrapštyti šašo, nenuplėšti pleistrų.",
-        "Vengti spaudimo ir tempimo žaizdos srityje.",
-        "Vengti makiažo, kremų, šveitiklių iki leidimo.",
-        "Saugoti nuo saulės 1–2 mėn. (vėliau – SPF 50+).",
-        "Riboti fizinį krūvį 7–14 d.",
-        "Skubiai kreiptis, jei paraudimas, pūliavimas, žaizdos prasiskyrimas ar karščiavimas ≥38°C."
-      ]
-    }
-  ]
+  }
 }
