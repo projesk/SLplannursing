@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slaugytojos postas</title>
+  <link rel="stylesheet" href="css/nurse.css?v=20260712-6">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Slaugytojos postas</h1>
+      <p>Anoniminis palatų ir lovų vaizdas. Identifikacija tik pagal palatą ir lovą.</p>
+    </div>
+    <button type="button" id="refreshBtn">Atnaujinti</button>
+  </header>
+
+  <main class="layout">
+    <section class="rooms-panel">
+      <h2>Palatos / lovos</h2>
+      <div id="loading" class="status">Kraunami duomenys…</div>
+      <div id="roomsGrid" class="rooms-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="patient-panel" id="patientPanel">
+      <div class="empty-state">
+        <h2>Pasirinkite palatą ir lovą</h2>
+        <p>Kortelėje bus rodoma naujausia anoniminė paciento vertinimo santrauka ir istorija.</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="planModal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h2 id="modalTitle">Slaugos planas</h2>
+        <button type="button" class="icon-btn" data-close-modal aria-label="Uždaryti">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-actions">
+        <button type="button" id="printPlanBtn">Spausdinti</button>
+        <button type="button" id="editPlanBtn">Taisyti planą ir problemas</button>
+        <button type="button" id="savePlanBtn" class="success" hidden>Išsaugoti pakeitimus</button>
+        <button type="button" data-close-modal>Uždaryti</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/nurse.js?v=20260712-6"></script>
+</body>
+</html>
