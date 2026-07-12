@@ -281,8 +281,8 @@ function renderScaleSummary(record) {
     ['Skausmas / NRS', p.pain, interpretPain(p.pain)]
   ];
 
-  return `<div class="section"><h3>Skalės ir rodikliai</h3><div class="scale-grid">${rows.map(([label, value, interpretation]) => `
-    <div class="scale-item"><strong>${label}</strong><br><span class="scale-value">${value == null ? '—' : escapeHtml(value)}</span><div class="scale-note"><strong>Vertinimas:</strong> ${escapeHtml(interpretation)}</div></div>
+  return `<div class="section scale-summary"><h3>Skalės ir rodikliai</h3><div class="scale-grid">${rows.map(([label, value, interpretation]) => `
+    <div class="scale-item${value == null ? ' scale-unassessed' : ''}"><strong>${label}</strong><br><span class="scale-value">${value == null ? '—' : escapeHtml(value)}</span><div class="scale-note"><strong>Vertinimas:</strong> ${escapeHtml(interpretation)}</div></div>
   `).join('')}</div></div>`;
 }
 

@@ -122,7 +122,9 @@ ul.clean { margin: 8px 0 0; padding-left: 20px; }
   body.print-modal .modal { display: block !important; position: static; }
   body.print-modal .modal-backdrop, body.print-modal .modal-actions, body.print-modal .icon-btn { display: none !important; }
   body.print-modal .modal-dialog { box-shadow: none; border: 0; width: 100%; max-height: none; margin: 0; }
+  body.print-modal .scale-unassessed { display: none !important; }
 }
+
 .risk-pill.risk-green { background: var(--green); }
 .risk-pill.risk-yellow { background: var(--yellow); }
 .risk-pill.risk-red { background: var(--red); }
