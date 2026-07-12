@@ -33,7 +33,31 @@
         <label><input type="checkbox" id="suvarzymas"> Suvaržymas</label>
         <label><input type="checkbox" id="demencija"> Demencija</label>
         <label><input type="checkbox" id="agresyvus"> Agresyvus</label>
-        <label><input type="checkbox" id="bendradarbiauja" checked> Bendradarbiauja</label>
+        <label><input type="checkbox" id="bendradarbiauja"> Bendradarbiauja</label>
+      </div>
+      <div id="fiksacija_detales" style="display:none; margin-top:10px;">
+        <label for="fiksacijos_priezastis">Fiksacijos priežastis
+          <select id="fiksacijos_priezastis" name="fiksacijos_priezastis">
+            <option value="">—</option>
+            <option value="kateteriai_zondai">Traukia kateterius / zondus</option>
+            <option value="agresyvus_save_zalojantis">Agresyvus / save žalojantis elgesys</option>
+            <option value="kita">Kita</option>
+          </select>
+        </label>
+        <div class="row">
+          <label for="apsaugines_priemones">Lovos turėklai / apsauginės priemonės
+            <select id="apsaugines_priemones" name="apsaugines_priemones">
+              <option value="netaikoma">Netaikoma</option>
+              <option value="taikoma">Taikoma</option>
+            </select>
+          </label>
+          <label for="fiksacijos_pradzia">Fiksacijos pradžios laikas
+            <input id="fiksacijos_pradzia" name="fiksacijos_pradzia" type="time">
+          </label>
+        </div>
+        <label for="fiksacijos_intervalas">Fiksacijos stebėjimo intervalas
+          <input id="fiksacijos_intervalas" name="fiksacijos_intervalas" placeholder="pvz. kas 15 min., kas 30 min.">
+        </label>
       </div>
       <div id="fiksacija_detales" style="display:none; margin-top:10px;">
         <label for="fiksacijos_priezastis">Fiksacijos priežastis
