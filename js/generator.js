@@ -408,6 +408,13 @@ function keltiISistema() {
     return;
   }
 
+  const palata = (document.forms['nursingForm']['palata'].value || '').trim();
+  const lova = (document.forms['nursingForm']['lova'].value || '').trim();
+  if (!palata || !lova) {
+    alert('Palata ir lova nepažymėtos. Duomenys į Google Sheets gali būti įkelti, bet slaugytojos lange jų nematysite. Užpildykite palatą ir lovą prieš keliant į sistemą.');
+    return;
+  }
+
   const url = (GOOGLE_SCRIPT_URL || '').trim();
   if (!url || !url.endsWith('exec')) {
     alert('Patikrinkite WebApp URL – turi baigtis exec. Naudokite Apps Script Web app /exec adresą, ne Google Sheets lentelės adresą.');

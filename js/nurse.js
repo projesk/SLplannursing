@@ -415,30 +415,60 @@ function closePlanModal() {
 function enablePlanEdit() {
   const plan = document.getElementById('planText');
   if (!plan) return;
+
   plan.setAttribute('contenteditable', 'true');
-  document.querySelectorAll('[data-editable-block]').forEach(block => {
-    block.setAttribute('contenteditable', 'true');
-    block.classList.add('is-editing');
-  });
+  replaceProblemBlockWithTextarea('currentProblemsText');
+  replaceProblemBlockWithTextarea('possibleProblemsText');
+
   plan.focus();
   document.getElementById('editPlanBtn').hidden = true;
   document.getElementById('savePlanBtn').hidden = false;
 }
 
+function replaceProblemBlockWithTextarea(id) {
+  const block = document.getElementById(id);
+  if (!block || document.getElementById(`${id}Edit`)) return;
+
+  const textarea = document.createElement('textarea');
+  textarea.id = `${id}Edit`;
+  textarea.className = 'editable-textarea';
+  textarea.value = block.textContent.trim();
+  textarea.setAttribute('aria-label', id === 'currentProblemsText' ? 'Esamos slaugos problemos' : 'Galimos problemos ir rizikos');
+  block.replaceWith(textarea);
+}
+
 function savePlanEdit() {
   const plan = document.getElementById('planText');
   if (!plan || !nurseState.activeRecord) return;
+
+  const currentText = document.getElementById('currentProblemsTextEdit')?.value || '';
+  const possibleText = document.getElementById('possibleProblemsTextEdit')?.value || '';
+
   nurseState.activeRecord.editedPlan = plan.textContent.trim();
   nurseState.activeRecord.parsed.plan = nurseState.activeRecord.editedPlan;
-  nurseState.activeRecord.parsed.esamos = parseEditableList(document.getElementById('currentProblemsText')?.textContent || '');
-  nurseState.activeRecord.parsed.galimos = parseEditableList(document.getElementById('possibleProblemsText')?.textContent || '');
+  nurseState.activeRecord.parsed.esamos = parseEditableList(currentText);
+  nurseState.activeRecord.parsed.galimos = parseEditableList(possibleText);
+
   plan.setAttribute('contenteditable', 'false');
-  document.querySelectorAll('[data-editable-block]').forEach(block => {
-    block.setAttribute('contenteditable', 'false');
-    block.classList.remove('is-editing');
-  });
+  replaceTextareaWithProblemBlock('currentProblemsText', nurseState.activeRecord.parsed.esamos);
+  replaceTextareaWithProblemBlock('possibleProblemsText', nurseState.activeRecord.parsed.galimos);
+
   document.getElementById('editPlanBtn').hidden = false;
   document.getElementById('savePlanBtn').hidden = true;
+}
+
+function replaceTextareaWithProblemBlock(id, items) {
+  const textarea = document.getElementById(`${id}Edit`);
+  if (!textarea) return;
+
+  const value = items.length ? items.map(item => `• ${item}`).join('\n') : '-';
+  const block = document.createElement('div');
+  block.id = id;
+  block.className = 'editable-list';
+  block.dataset.editableBlock = '';
+  block.tabIndex = 0;
+  block.textContent = value;
+  textarea.replaceWith(block);
 }
 
 function printCurrentPlan() {
