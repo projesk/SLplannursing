@@ -9,14 +9,15 @@ let nurseState = {
   records: [],
   grouped: new Map(),
   selectedKey: null,
-  activeRecord: null
+  activeRecord: null,
+  printPreview: false
 };
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('refreshBtn').addEventListener('click', loadNurseData);
   document.querySelectorAll('[data-close-modal]').forEach(el => el.addEventListener('click', closePlanModal));
   document.getElementById('printPlanBtn').addEventListener('click', printCurrentPlan);
-  document.getElementById('editPlanBtn').addEventListener('click', enablePlanEdit);
+  document.getElementById('editPlanBtn').addEventListener('click', handleEditPlanClick);
   document.getElementById('savePlanBtn').addEventListener('click', savePlanEdit);
   loadNurseData();
 });
@@ -389,29 +390,53 @@ function parseEditableList(text) {
 function openPlanModal(record) {
   if (!record) return;
   nurseState.activeRecord = record;
+  nurseState.printPreview = false;
+  renderPlanModalBody(record, { hideUnassessedScales: false, isPreview: false });
+  resetModalActions();
+  document.getElementById('planModal').setAttribute('aria-hidden', 'false');
+}
+
+function renderPlanModalBody(record, options = {}) {
   const risk = calculateRisk(record);
   const plan = record.editedPlan || record.parsed.plan || '-';
-  document.getElementById('modalTitle').textContent = `Palata ${record.palata} · Lova ${record.lova}`;
+  document.getElementById('modalTitle').textContent = options.isPreview
+    ? `Spausdinimo peržiūra · Palata ${record.palata} · Lova ${record.lova}`
+    : `Palata ${record.palata} · Lova ${record.lova}`;
   document.getElementById('modalBody').innerHTML = `
     <div id="printArea">
+      ${options.isPreview ? '<p class="preview-note">Spausdinimo peržiūra: nevertinti testai šiame lape nerodomi.</p>' : ''}
       <div class="handwrite-line"><strong>Pacientas:</strong><span></span></div>
       <p><strong>Vertinimo laikas:</strong> ${escapeHtml(record.time || record.uploadedAt || '-')}</p>
       <p><strong>Rizika:</strong> <span class="risk-pill risk-${risk.level}">${risk.label}</span></p>
-      ${renderScaleSummary(record, { hideUnassessed: true })}
+      ${renderScaleSummary(record, { hideUnassessed: options.hideUnassessedScales })}
       ${renderEditableList('Esamos slaugos problemos', 'currentProblemsText', record.parsed.esamos)}
       ${renderEditableList('Galimos problemos / rizikos', 'possibleProblemsText', record.parsed.galimos)}
       <div class="section"><h3>Pilnas sugeneruotas slaugos planas</h3><div id="planText" class="plan-text">${escapeHtml(plan)}</div></div>
       <div class="handwrite-line nurse-signature"><strong>Bendrosios praktikos slaugytojas:</strong><span></span></div>
     </div>
   `;
+}
+
+function resetModalActions() {
+  document.getElementById('printPlanBtn').textContent = 'Spausdinti';
+  document.getElementById('editPlanBtn').textContent = nurseState.printPreview ? 'Taisyti' : 'Taisyti planą ir problemas';
   document.getElementById('editPlanBtn').hidden = false;
   document.getElementById('savePlanBtn').hidden = true;
-  document.getElementById('planModal').setAttribute('aria-hidden', 'false');
 }
 
 function closePlanModal() {
   document.getElementById('planModal').setAttribute('aria-hidden', 'true');
   nurseState.activeRecord = null;
+  nurseState.printPreview = false;
+}
+
+function handleEditPlanClick() {
+  if (nurseState.printPreview && nurseState.activeRecord) {
+    nurseState.printPreview = false;
+    renderPlanModalBody(nurseState.activeRecord, { hideUnassessedScales: false, isPreview: false });
+    resetModalActions();
+  }
+  enablePlanEdit();
 }
 
 function enablePlanEdit() {
@@ -478,6 +503,15 @@ function replaceTextareaWithProblemBlock(id, items) {
 }
 
 function printCurrentPlan() {
+  if (!nurseState.activeRecord) return;
+
+  if (!nurseState.printPreview) {
+    nurseState.printPreview = true;
+    renderPlanModalBody(nurseState.activeRecord, { hideUnassessedScales: true, isPreview: true });
+    resetModalActions();
+    return;
+  }
+
   document.body.classList.add('print-modal');
   window.print();
   setTimeout(() => document.body.classList.remove('print-modal'), 250);

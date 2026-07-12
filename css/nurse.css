@@ -197,3 +197,12 @@ ul.clean { margin: 8px 0 0; padding-left: 20px; }
 .editable-textarea::placeholder {
   color: #64748b;
 }
+
+.preview-note {
+  color: var(--blue);
+  font-weight: 700;
+  margin-top: 0;
+}
+@media print {
+  body.print-modal .preview-note { display: none !important; }
+}
