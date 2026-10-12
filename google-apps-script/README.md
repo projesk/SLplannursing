@@ -22,7 +22,7 @@
 - Paspaudus slaugytojos puslapio mygtuką „Naujas pacientas“, visi tos palatos ir lovos aktyvūs vertinimai perkeliami į lapą `Neaktyvios istorijos` kaip viena užbaigta istorija.
 - Slaugytojos puslapio `list` užklausa skaito tik lapą `Vertinimai`, todėl archyvuotos istorijos slaugytojos lange neberodomos.
 - `cleanupArchivedHistories()` kiekvienai palatai ir lovai palieka dvi naujausias neaktyvias istorijas, o senesnes ištrina.
-- `setup()` sukuria savaitinį trigerį, kuris automatiškai paleidžia archyvo valymą.
+- `setup()` sukuria savaitinį pirmadienio trigerį, kuris apie 3 val. automatiškai paleidžia archyvo valymą.
 
 ## Patikra
 

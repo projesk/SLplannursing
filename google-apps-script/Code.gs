@@ -329,6 +329,7 @@ function installArchiveCleanupTrigger_() {
   ScriptApp.newTrigger('cleanupArchivedHistories')
     .timeBased()
     .everyWeeks(1)
+    .onWeekDay(ScriptApp.WeekDay.MONDAY)
     .atHour(3)
     .create();
 }
