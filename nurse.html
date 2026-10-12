@@ -47,6 +47,24 @@
     </div>
   </div>
 
-  <script src="js/nurse.js?v=20261012-1"></script>
+  <div class="modal" id="unsavedChangesModal" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="unsavedChangesTitle">
+      <div class="modal-header">
+        <h2 id="unsavedChangesTitle">Neišsaugoti pakeitimai</h2>
+      </div>
+      <div class="modal-body">
+        <p>Ar išsaugoti slaugos plano, esamų problemų ir galimų problemų pakeitimus Google Sheets?</p>
+        <p class="meta">Originalus automatiškai sugeneruotas įrašas liks nepakeistas.</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="saveChangesPromptBtn" class="success">Išsaugoti pakeitimus</button>
+        <button type="button" id="discardChangesPromptBtn" class="danger">Nesaugoti</button>
+        <button type="button" id="continueEditingPromptBtn">Grįžti taisyti</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/nurse.js?v=20261012-2"></script>
 </body>
 </html>

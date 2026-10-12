@@ -25,7 +25,10 @@ const CONFIG = {
     'Lova',
     'Įrašas',
     'Žali duomenys',
-    'Epizodo ID'
+    'Epizodo ID',
+    'Vertinimo ID',
+    'Slaugytojos pataisymas',
+    'Pataisyta'
   ],
   ARCHIVE_HEADERS: [
     'Įkelta',
@@ -36,7 +39,10 @@ const CONFIG = {
     'Žali duomenys',
     'Istorija užbaigta',
     'Istorijos ID',
-    'Epizodo ID'
+    'Epizodo ID',
+    'Vertinimo ID',
+    'Slaugytojos pataisymas',
+    'Pataisyta'
   ]
 };
 
@@ -97,12 +103,17 @@ function doPost(e) {
 
   try {
     const payload = parsePayload_(e);
+    if (payload.action === 'updateAssessment') {
+      return jsonResponse_(updateAssessment_(payload));
+    }
     validatePayload_(payload);
 
     const sheet = ensureSheet_();
     const uploadedAt = new Date();
     const episodeId = getOrCreateEpisodeId_(sheet, payload.palata, payload.lova);
+    const assessmentId = Utilities.getUuid();
     payload.episodeId = episodeId;
+    payload.assessmentId = assessmentId;
 
     sheet.appendRow([
       uploadedAt,
@@ -111,13 +122,17 @@ function doPost(e) {
       payload.lova || '',
       payload['įrašas'] || payload.irasas || '',
       JSON.stringify(payload),
-      episodeId
+      episodeId,
+      assessmentId,
+      '',
+      ''
     ]);
 
     return jsonResponse_({
       ok: true,
       message: 'Assessment saved.',
-      episodeId
+      episodeId,
+      assessmentId
     });
   } catch (error) {
     return jsonResponse_({ ok: false, error: String(error && error.message ? error.message : error) });
@@ -246,7 +261,10 @@ function archiveBedRows_(palata, lova) {
       ...item.row.slice(0, 6),
       closedAt,
       historyId,
-      item.episodeId || historyId
+      item.episodeId || historyId,
+      item.row[7] || Utilities.getUuid(),
+      item.row[8] || '',
+      item.row[9] || ''
     ]);
 
     const archiveSheet = ensureArchiveSheet_();
@@ -262,6 +280,53 @@ function archiveBedRows_(palata, lova) {
   } finally {
     lock.releaseLock();
   }
+}
+
+function updateAssessment_(payload) {
+  const assessmentId = String(payload.assessmentId || '').trim();
+  const episodeId = String(payload.episodeId || '').trim();
+  const room = String(payload.palata || '').trim();
+  const bed = String(payload.lova || '').trim();
+  const edited = payload.edited;
+
+  if (!assessmentId || !episodeId || !room || !bed) {
+    throw new Error('Assessment update is missing identifying fields.');
+  }
+  if (!edited || typeof edited !== 'object') {
+    throw new Error('Assessment update is missing edited data.');
+  }
+
+  const normalizedEdit = {
+    esamos: normalizeStringArray_(edited.esamos),
+    galimos: normalizeStringArray_(edited.galimos),
+    planas: String(edited.planas || '').trim()
+  };
+  const sheet = ensureSheet_();
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) throw new Error('Assessment not found.');
+
+  const values = sheet.getRange(2, 1, lastRow - 1, CONFIG.HEADERS.length).getValues();
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    if (
+      String(row[7] || '').trim() === assessmentId &&
+      String(row[6] || '').trim() === episodeId &&
+      String(row[2] || '').trim() === room &&
+      String(row[3] || '').trim() === bed
+    ) {
+      const editedAt = new Date();
+      sheet.getRange(i + 2, 9).setValue(JSON.stringify(normalizedEdit));
+      sheet.getRange(i + 2, 10).setValue(editedAt);
+      return { ok: true, assessmentId, episodeId, editedAt: editedAt.toISOString() };
+    }
+  }
+
+  throw new Error('Assessment not found or identifiers do not match.');
+}
+
+function normalizeStringArray_(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map(item => String(item || '').trim()).filter(Boolean);
 }
 
 function getOrCreateEpisodeId_(sheet, palata, lova) {
@@ -307,6 +372,8 @@ function parseRawPayload_(rawText) {
 
 function listAssessmentRows_() {
   const sheet = ensureSheet_();
+  ensureActiveEpisodeIds_(sheet);
+  ensureAssessmentIds_(sheet);
   const lastRow = sheet.getLastRow();
   if (lastRow <= 1) return [];
 
@@ -321,9 +388,54 @@ function listAssessmentRows_() {
       lova: row[3] || raw.lova || '',
       irasas: row[4] || raw['įrašas'] || raw.irasas || '',
       episodeId: row[6] || raw.episodeId || '',
+      assessmentId: row[7] || raw.assessmentId || '',
+      edited: parseRawPayload_(row[8]),
+      editedAt: row[9] instanceof Date ? row[9].toISOString() : row[9],
       raw
     };
   }).filter(record => record.palata && record.lova);
+}
+
+function ensureActiveEpisodeIds_(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return;
+
+  const values = sheet.getRange(2, 1, lastRow - 1, CONFIG.HEADERS.length).getValues();
+  const rowsByBed = {};
+
+  values.forEach((row, index) => {
+    const raw = parseRawPayload_(row[5]);
+    const room = String(row[2] || raw.palata || '').trim();
+    const bed = String(row[3] || raw.lova || '').trim();
+    if (!room || !bed) return;
+
+    const key = `${room}__${bed}`;
+    if (!rowsByBed[key]) rowsByBed[key] = [];
+    rowsByBed[key].push({
+      rowNumber: index + 2,
+      episodeId: String(row[6] || raw.episodeId || '').trim()
+    });
+  });
+
+  Object.values(rowsByBed).forEach(rows => {
+    const identifiedRow = [...rows].reverse().find(item => item.episodeId);
+    const episodeId = identifiedRow ? identifiedRow.episodeId : Utilities.getUuid();
+    rows.forEach(item => {
+      if (!item.episodeId) sheet.getRange(item.rowNumber, 7).setValue(episodeId);
+    });
+  });
+}
+
+function ensureAssessmentIds_(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return;
+
+  const values = sheet.getRange(2, 8, lastRow - 1, 1).getValues();
+  values.forEach((row, index) => {
+    if (!String(row[0] || '').trim()) {
+      sheet.getRange(index + 2, 8).setValue(Utilities.getUuid());
+    }
+  });
 }
 
 function ensureSheet_() {

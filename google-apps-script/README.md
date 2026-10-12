@@ -22,6 +22,8 @@
 - Kiekvienai aktyviai palatos/lovos istorijai Apps Script automatiškai suteikia anoniminį `Epizodo ID`; visi tos istorijos vertinimai gauna tą patį ID.
 - Paspaudus slaugytojos puslapio mygtuką „Naujas pacientas“, visi tos palatos ir lovos aktyvūs vertinimai perkeliami į lapą `Neaktyvios istorijos` kaip viena užbaigta istorija.
 - Po istorijos užbaigimo kitas tos pačios lovos vertinimas automatiškai gauna naują `Epizodo ID`.
+- Kiekvienas vertinimas turi atskirą `Vertinimo ID`. Slaugytojos atlikti problemų ir plano pakeitimai saugomi stulpelyje `Slaugytojos pataisymas`, neperrašant originalaus `Įrašas` turinio.
+- Slaugytojos lange pirmiausia rodoma pataisyta versija, jei ji išsaugota; kitu atveju rodoma originali sugeneruota versija.
 - Slaugytojos puslapio `list` užklausa skaito tik lapą `Vertinimai`, todėl archyvuotos istorijos slaugytojos lange neberodomos.
 - `cleanupArchivedHistories()` kiekvienai palatai ir lovai palieka dvi naujausias neaktyvias istorijas, o senesnes ištrina.
 - `setup()` sukuria savaitinį pirmadienio trigerį, kuris apie 3 val. automatiškai paleidžia archyvo valymą.

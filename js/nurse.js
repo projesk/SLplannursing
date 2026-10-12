@@ -10,7 +10,9 @@ let nurseState = {
   grouped: new Map(),
   selectedKey: null,
   activeRecord: null,
-  printPreview: false
+  printPreview: false,
+  hasUnsavedChanges: false,
+  savedEditState: null
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('printPlanBtn').addEventListener('click', printCurrentPlan);
   document.getElementById('editPlanBtn').addEventListener('click', handleEditPlanClick);
   document.getElementById('savePlanBtn').addEventListener('click', savePlanEdit);
+  document.getElementById('saveChangesPromptBtn').addEventListener('click', savePromptedChanges);
+  document.getElementById('discardChangesPromptBtn').addEventListener('click', discardPromptedChanges);
+  document.getElementById('continueEditingPromptBtn').addEventListener('click', continueEditingFromPrompt);
   loadNurseData();
 });
 
@@ -99,6 +104,12 @@ function normalizeRecords(records) {
       const raw = record.raw || {};
       const text = record.irasas || raw['įrašas'] || raw.irasas || '';
       const parsed = parseAssessmentText(text);
+      const storedEdit = normalizeStoredEdit(record.edited);
+      if (storedEdit) {
+        parsed.esamos = storedEdit.esamos;
+        parsed.galimos = storedEdit.galimos;
+        parsed.plan = storedEdit.planas;
+      }
       return {
         id: `${record.uploadedAt || record.Laikas || index}_${index}`,
         uploadedAt: record.uploadedAt || '',
@@ -106,13 +117,24 @@ function normalizeRecords(records) {
         palata: String(record.palata || raw.palata || '').trim(),
         lova: String(record.lova || raw.lova || '').trim(),
         episodeId: String(record.episodeId || raw.episodeId || '').trim(),
+        assessmentId: String(record.assessmentId || raw.assessmentId || '').trim(),
+        editedAt: record.editedAt || '',
         text,
         parsed,
-        editedPlan: null
+        editedPlan: storedEdit ? storedEdit.planas : null
       };
     })
     .filter(record => record.palata && record.lova)
     .sort((a, b) => getRecordDate(b) - getRecordDate(a));
+}
+
+function normalizeStoredEdit(value) {
+  if (!value || typeof value !== 'object') return null;
+  return {
+    esamos: Array.isArray(value.esamos) ? value.esamos.map(String).filter(Boolean) : [],
+    galimos: Array.isArray(value.galimos) ? value.galimos.map(String).filter(Boolean) : [],
+    planas: String(value.planas || '').trim()
+  };
 }
 
 function parseAssessmentText(text) {
@@ -450,6 +472,8 @@ function openPlanModal(record) {
   if (!record) return;
   nurseState.activeRecord = record;
   nurseState.printPreview = false;
+  nurseState.hasUnsavedChanges = false;
+  nurseState.savedEditState = getRecordEditState(record);
   renderPlanModalBody(record, { hideUnassessedScales: false, isPreview: false });
   resetModalActions();
   document.getElementById('planModal').setAttribute('aria-hidden', 'false');
@@ -484,9 +508,20 @@ function resetModalActions() {
 }
 
 function closePlanModal() {
+  captureCurrentEdits();
+  if (nurseState.hasUnsavedChanges) {
+    showUnsavedChangesPrompt();
+    return;
+  }
+  finalizeClosePlanModal();
+}
+
+function finalizeClosePlanModal() {
   document.getElementById('planModal').setAttribute('aria-hidden', 'true');
   nurseState.activeRecord = null;
   nurseState.printPreview = false;
+  nurseState.hasUnsavedChanges = false;
+  nurseState.savedEditState = null;
 }
 
 function handleEditPlanClick() {
@@ -525,17 +560,36 @@ function replaceProblemBlockWithTextarea(id) {
   block.replaceWith(textarea);
 }
 
-function savePlanEdit() {
+async function savePlanEdit() {
+  captureCurrentEdits();
+  if (!nurseState.activeRecord) return;
+
+  if (nurseState.hasUnsavedChanges) {
+    const saved = await persistActiveRecordEdits();
+    if (!saved) return;
+  }
+
+  finishPlanEditMode();
+}
+
+function captureCurrentEdits() {
   const plan = document.getElementById('planText');
   if (!plan || !nurseState.activeRecord) return;
 
-  const currentText = document.getElementById('currentProblemsTextEdit')?.value || '';
-  const possibleText = document.getElementById('possibleProblemsTextEdit')?.value || '';
+  const currentEditor = document.getElementById('currentProblemsTextEdit');
+  const possibleEditor = document.getElementById('possibleProblemsTextEdit');
+  if (!currentEditor || !possibleEditor) return;
 
   nurseState.activeRecord.editedPlan = plan.textContent.trim();
   nurseState.activeRecord.parsed.plan = nurseState.activeRecord.editedPlan;
-  nurseState.activeRecord.parsed.esamos = parseEditableList(currentText);
-  nurseState.activeRecord.parsed.galimos = parseEditableList(possibleText);
+  nurseState.activeRecord.parsed.esamos = parseEditableList(currentEditor.value);
+  nurseState.activeRecord.parsed.galimos = parseEditableList(possibleEditor.value);
+  nurseState.hasUnsavedChanges = editStateSignature(getRecordEditState(nurseState.activeRecord)) !== editStateSignature(nurseState.savedEditState);
+}
+
+function finishPlanEditMode() {
+  const plan = document.getElementById('planText');
+  if (!plan || !nurseState.activeRecord) return;
 
   if (nurseState.selectedKey) renderPatientCard(nurseState.selectedKey);
 
@@ -545,6 +599,64 @@ function savePlanEdit() {
 
   document.getElementById('editPlanBtn').hidden = false;
   document.getElementById('savePlanBtn').hidden = true;
+}
+
+function getRecordEditState(record) {
+  return {
+    esamos: [...(record.parsed.esamos || [])],
+    galimos: [...(record.parsed.galimos || [])],
+    planas: String(record.editedPlan || record.parsed.plan || '').trim()
+  };
+}
+
+function editStateSignature(state) {
+  return JSON.stringify(state || { esamos: [], galimos: [], planas: '' });
+}
+
+async function persistActiveRecordEdits() {
+  const record = nurseState.activeRecord;
+  if (!record || !record.assessmentId || !record.episodeId) {
+    alert('Nepavyko nustatyti vertinimo arba epizodo ID. Atnaujinkite slaugytojos puslapį ir bandykite dar kartą.');
+    return false;
+  }
+
+  const editState = getRecordEditState(record);
+  const saveButton = document.getElementById('savePlanBtn');
+  saveButton.disabled = true;
+  saveButton.textContent = 'Saugoma…';
+
+  try {
+    const url = await getNurseGoogleScriptUrl();
+    await postNursePayload(url, {
+      action: 'updateAssessment',
+      assessmentId: record.assessmentId,
+      episodeId: record.episodeId,
+      palata: record.palata,
+      lova: record.lova,
+      edited: editState
+    });
+    const records = await fetchAssessments();
+    const savedRecord = records.find(item => String(item.assessmentId || item.raw?.assessmentId || '').trim() === record.assessmentId);
+    const savedEdit = savedRecord ? normalizeStoredEdit(savedRecord.edited) : null;
+    if (!savedEdit || editStateSignature(savedEdit) !== editStateSignature(editState)) {
+      throw new Error('Saved edit could not be verified.');
+    }
+    nurseState.savedEditState = editState;
+    nurseState.hasUnsavedChanges = false;
+    record.editedPlan = editState.planas;
+    return true;
+  } catch (error) {
+    alert('Nepavyko išsaugoti pakeitimų Google Sheets. Patikrinkite interneto ryšį ir Apps Script deployment.');
+    return false;
+  } finally {
+    saveButton.disabled = false;
+    saveButton.textContent = 'Išsaugoti pakeitimus';
+  }
+}
+
+function postNursePayload(url, payload) {
+  const body = new URLSearchParams({ payload: JSON.stringify(payload) });
+  return fetch(url, { method: 'POST', body, mode: 'no-cors', keepalive: true });
 }
 
 function replaceTextareaWithProblemBlock(id, items) {
@@ -565,6 +677,7 @@ function printCurrentPlan() {
   if (!nurseState.activeRecord) return;
 
   if (!nurseState.printPreview) {
+    captureCurrentEdits();
     nurseState.printPreview = true;
     renderPlanModalBody(nurseState.activeRecord, { hideUnassessedScales: true, isPreview: true });
     resetModalActions();
@@ -573,7 +686,50 @@ function printCurrentPlan() {
 
   document.body.classList.add('print-modal');
   window.print();
-  setTimeout(() => document.body.classList.remove('print-modal'), 250);
+  setTimeout(() => {
+    document.body.classList.remove('print-modal');
+    if (nurseState.hasUnsavedChanges) showUnsavedChangesPrompt();
+  }, 250);
+}
+
+function showUnsavedChangesPrompt() {
+  document.getElementById('unsavedChangesModal').setAttribute('aria-hidden', 'false');
+}
+
+function hideUnsavedChangesPrompt() {
+  document.getElementById('unsavedChangesModal').setAttribute('aria-hidden', 'true');
+}
+
+async function savePromptedChanges() {
+  const saved = await persistActiveRecordEdits();
+  if (!saved) return;
+  hideUnsavedChangesPrompt();
+  finalizeClosePlanModal();
+}
+
+function discardPromptedChanges() {
+  restoreSavedEditState();
+  hideUnsavedChangesPrompt();
+  finalizeClosePlanModal();
+}
+
+function continueEditingFromPrompt() {
+  hideUnsavedChangesPrompt();
+  if (nurseState.printPreview && nurseState.activeRecord) {
+    nurseState.printPreview = false;
+    renderPlanModalBody(nurseState.activeRecord, { hideUnassessedScales: false, isPreview: false });
+    resetModalActions();
+  }
+  enablePlanEdit();
+}
+
+function restoreSavedEditState() {
+  if (!nurseState.activeRecord || !nurseState.savedEditState) return;
+  nurseState.activeRecord.parsed.esamos = [...nurseState.savedEditState.esamos];
+  nurseState.activeRecord.parsed.galimos = [...nurseState.savedEditState.galimos];
+  nurseState.activeRecord.parsed.plan = nurseState.savedEditState.planas;
+  nurseState.activeRecord.editedPlan = nurseState.savedEditState.planas;
+  nurseState.hasUnsavedChanges = false;
 }
 
 function setLoading(message) {
