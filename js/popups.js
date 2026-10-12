@@ -287,7 +287,7 @@ const MORSE_CATEGORIES = [
     ]
   },
   {
-    id: 'morse_iv', label: 'IV sistema / heparino spyna',
+    id: 'morse_iv', label: 'IV sistema / heparino pompa',
     options: [
       { v: 0,  text: '0 – Ne' },
       { v: 20, text: '20 – Taip' }

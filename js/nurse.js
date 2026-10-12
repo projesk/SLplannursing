@@ -253,7 +253,7 @@ function renderRoomsGrid() {
       card.className = `bed-card risk-${risk.level}${nurseState.selectedKey === key ? ' active' : ''}`;
       card.innerHTML = `
         <div class="room-bed">Palata ${room} · Lova ${bed}</div>
-        <div class="time">${latest ? `Paskutinis: ${escapeHtml(latest.time || latest.uploadedAt || '-')}` : 'Vertinimų nėra'}</div>
+        <div class="time">${latest ? `Paskutinis: ${escapeHtml(formatAssessmentDate(latest))}` : 'Vertinimų nėra'}</div>
         <span class="risk-pill">${risk.label}</span>
         <div class="bed-actions">
           <button type="button" class="open-bed-btn">Atidaryti</button>
@@ -306,7 +306,7 @@ function renderPatientCard(key) {
       <div class="card-header">
         <div>
           <h2>Palata ${escapeHtml(latest.palata)} · Lova ${escapeHtml(latest.lova)}</h2>
-          <p class="meta">Paskutinis vertinimas: ${escapeHtml(latest.time || latest.uploadedAt || '-')}</p>
+          <p class="meta">Paskutinis vertinimas: ${escapeHtml(formatAssessmentDate(latest))}</p>
         </div>
         <span class="risk-pill">${risk.label}</span>
       </div>
@@ -316,7 +316,7 @@ function renderPatientCard(key) {
       <div class="section">
         <h3>Vertinimų istorija</h3>
         <div class="history-list">
-          ${records.map(record => `<button type="button" class="history-item" data-record-id="${escapeHtml(record.id)}">${escapeHtml(record.time || record.uploadedAt || '-')} · ${calculateRisk(record).label}</button>`).join('')}
+          ${records.map(record => `<button type="button" class="history-item" data-record-id="${escapeHtml(record.id)}"><span class="history-date">${escapeHtml(formatAssessmentDate(record))}</span><span class="history-risk">${escapeHtml(calculateRisk(record).label)}</span></button>`).join('')}
         </div>
       </div>
     </article>
@@ -344,7 +344,7 @@ function renderScaleSummary(record, options = {}) {
   }).filter(row => !options.hideUnassessed || row.value != null);
 
   const contextLines = [
-    p.vitals ? `<p><strong>Rodikliai:</strong> ${escapeHtml(p.vitals)}</p>` : '',
+    p.vitals && !usesPatientHistory ? `<p><strong>Rodikliai:</strong> ${escapeHtml(p.vitals)}</p>` : '',
     p.psychological ? `<p><strong>Būsena:</strong> ${escapeHtml(p.psychological)}</p>` : '',
     p.restraint ? `<p><strong>Fiksacija:</strong> ${escapeHtml(p.restraint)}</p>` : ''
   ].filter(Boolean).join('');
@@ -358,9 +358,22 @@ function renderScaleSummary(record, options = {}) {
     return `<div class="section scale-summary compact-scale-summary"><h3>Skalės ir rodikliai</h3><div class="compact-scale-list">${contextLines}${scaleLines}</div></div>`;
   }
 
+  const vitalsHistory = usesPatientHistory ? renderVitalsHistory(historyRecords) : '';
   return `<div class="section scale-summary"><h3>Skalės ir rodikliai</h3><div class="scale-context">${contextLines}</div><div class="scale-grid">${rows.map(row => `
     <div class="scale-item${row.value == null ? ' scale-unassessed' : ''}"><strong>${row.label}</strong><br><span class="scale-value">${row.value == null ? '—' : escapeHtml(row.value)}</span>${renderScaleAssessmentDetails(row, usesPatientHistory)}</div>
-  `).join('')}</div></div>`;
+  `).join('')}</div>${vitalsHistory}</div>`;
+}
+
+function renderVitalsHistory(records) {
+  const measurements = records
+    .filter(record => record.parsed && record.parsed.vitals)
+    .slice(0, 5);
+
+  const content = measurements.length
+    ? measurements.map(record => `<div class="vitals-history-item"><time>${escapeHtml(formatAssessmentDate(record))}</time><span>${escapeHtml(record.parsed.vitals)}</span></div>`).join('')
+    : '<p class="meta">Šiam pacientui gyvybiniai rodikliai dar neįvesti.</p>';
+
+  return `<div class="vitals-history"><h4>Paskutiniai gyvybiniai rodikliai</h4>${content}</div>`;
 }
 
 function renderScaleAssessmentDetails(row, usesPatientHistory) {
@@ -386,7 +399,10 @@ function formatScaleScore(label, value) {
 
 function formatAssessmentDate(record) {
   const date = getRecordDate(record);
-  if (date.getTime() > 0) return date.toLocaleString('lt-LT');
+  if (date.getTime() > 0) {
+    const pad = value => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  }
   return record.time || record.uploadedAt || 'data nenurodyta';
 }
 
