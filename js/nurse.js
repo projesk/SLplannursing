@@ -130,6 +130,10 @@ function normalizeRecords(records) {
 
 function normalizeStoredEdit(value) {
   if (!value || typeof value !== 'object') return null;
+  const hasStoredEdit = ['esamos', 'galimos', 'planas']
+    .some(key => Object.prototype.hasOwnProperty.call(value, key));
+  if (!hasStoredEdit) return null;
+
   return {
     esamos: Array.isArray(value.esamos) ? value.esamos.map(String).filter(Boolean) : [],
     galimos: Array.isArray(value.galimos) ? value.galimos.map(String).filter(Boolean) : [],
@@ -306,7 +310,7 @@ function renderPatientCard(key) {
         </div>
         <span class="risk-pill">${risk.label}</span>
       </div>
-      ${renderScaleSummary(latest)}
+      ${renderScaleSummary(latest, { historyRecords: records })}
       ${renderProblems('Esamos slaugos problemos', latest.parsed.esamos)}
       ${renderProblems('Galimos problemos / rizikos', latest.parsed.galimos)}
       <div class="section">
@@ -325,13 +329,19 @@ function renderPatientCard(key) {
 
 function renderScaleSummary(record, options = {}) {
   const p = record.parsed;
+  const usesPatientHistory = Array.isArray(options.historyRecords);
+  const historyRecords = options.historyRecords || [record];
   const rows = [
-    ['NEWS2', p.news, interpretNews2(p.news)],
-    ['Braden', p.braden, interpretBraden(p.braden)],
-    ['MUST', p.must, interpretMust(p.must)],
-    ['Morse', p.morse, interpretMorse(p.morse)],
-    ['Skausmas / NRS', p.pain, interpretPain(p.pain)]
-  ].filter(([, value]) => !options.hideUnassessed || value != null);
+    ['NEWS2', 'news', interpretNews2],
+    ['Braden', 'braden', interpretBraden],
+    ['MUST', 'must', interpretMust],
+    ['Morse', 'morse', interpretMorse],
+    ['Skausmas / NRS', 'pain', interpretPain]
+  ].map(([label, key, interpret]) => {
+    const assessment = historyRecords.find(item => item.parsed && item.parsed[key] != null) || null;
+    const value = assessment ? assessment.parsed[key] : null;
+    return { label, value, interpretation: value == null ? '' : interpret(value), assessment };
+  }).filter(row => !options.hideUnassessed || row.value != null);
 
   const contextLines = [
     p.vitals ? `<p><strong>Rodikliai:</strong> ${escapeHtml(p.vitals)}</p>` : '',
@@ -342,21 +352,42 @@ function renderScaleSummary(record, options = {}) {
   if (!rows.length && !contextLines) return '';
 
   if (options.compact) {
-    const scaleLines = rows.map(([label, value, interpretation]) =>
-      `<p>${formatScaleLine(label, value, interpretation)}</p>`
+    const scaleLines = rows.map(row =>
+      `<p>${formatScaleLine(row.label, row.value, row.interpretation, row.assessment)}</p>`
     ).join('');
     return `<div class="section scale-summary compact-scale-summary"><h3>Skalės ir rodikliai</h3><div class="compact-scale-list">${contextLines}${scaleLines}</div></div>`;
   }
 
-  return `<div class="section scale-summary"><h3>Skalės ir rodikliai</h3><div class="scale-context">${contextLines}</div><div class="scale-grid">${rows.map(([label, value, interpretation]) => `
-    <div class="scale-item${value == null ? ' scale-unassessed' : ''}"><strong>${label}</strong><br><span class="scale-value">${value == null ? '—' : escapeHtml(value)}</span><div class="scale-note"><strong>Vertinimas:</strong> ${escapeHtml(interpretation)}</div></div>
+  return `<div class="section scale-summary"><h3>Skalės ir rodikliai</h3><div class="scale-context">${contextLines}</div><div class="scale-grid">${rows.map(row => `
+    <div class="scale-item${row.value == null ? ' scale-unassessed' : ''}"><strong>${row.label}</strong><br><span class="scale-value">${row.value == null ? '—' : escapeHtml(row.value)}</span>${renderScaleAssessmentDetails(row, usesPatientHistory)}</div>
   `).join('')}</div></div>`;
 }
 
-function formatScaleLine(label, value, interpretation) {
+function renderScaleAssessmentDetails(row, usesPatientHistory) {
+  if (row.value == null || !row.assessment) {
+    const message = usesPatientHistory ? 'Šiam pacientui dar neįvertinta.' : 'Šiame vertinime neįvertinta.';
+    return `<div class="scale-last-assessed scale-never-assessed">${message}</div>`;
+  }
+
+  return `<div class="scale-note"><strong>Vertinimas:</strong> ${escapeHtml(row.interpretation)}</div>
+    <div class="scale-last-assessed"><strong>Paskutinis vertinimas:</strong> ${escapeHtml(formatScaleScore(row.label, row.value))} · ${escapeHtml(formatAssessmentDate(row.assessment))}</div>`;
+}
+
+function formatScaleLine(label, value, interpretation, assessment) {
   const safeLabel = label === 'Skausmas / NRS' ? 'Skausmas' : label;
-  const scoreText = label === 'Skausmas / NRS' ? `${value}/10` : `${value} bal.`;
-  return `<strong>${escapeHtml(safeLabel)}:</strong> ${escapeHtml(scoreText)} — ${escapeHtml(interpretation)}`;
+  const scoreText = formatScaleScore(label, value);
+  const assessedAt = assessment ? ` · ${formatAssessmentDate(assessment)}` : '';
+  return `<strong>${escapeHtml(safeLabel)}:</strong> ${escapeHtml(scoreText)} — ${escapeHtml(interpretation)}${escapeHtml(assessedAt)}`;
+}
+
+function formatScaleScore(label, value) {
+  return label === 'Skausmas / NRS' ? `${value}/10` : `${value} bal.`;
+}
+
+function formatAssessmentDate(record) {
+  const date = getRecordDate(record);
+  if (date.getTime() > 0) return date.toLocaleString('lt-LT');
+  return record.time || record.uploadedAt || 'data nenurodyta';
 }
 
 

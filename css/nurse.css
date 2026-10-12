@@ -148,6 +148,14 @@ ul.clean { margin: 8px 0 0; padding-left: 20px; }
   font-size: 12px;
   margin-top: 4px;
 }
+.scale-last-assessed {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+.scale-never-assessed { font-style: italic; }
 .scale-value { font-weight: 700; }
 .editable-list {
   white-space: pre-wrap;
