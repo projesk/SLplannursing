@@ -1,0 +1,235 @@
+:root {
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --text: #172033;
+  --muted: #64748b;
+  --line: #dbe3ef;
+  --green: #16a34a;
+  --yellow: #d97706;
+  --red: #dc2626;
+  --blue: #2563eb;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 22px 28px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+.topbar h1 { margin: 0 0 4px; }
+.topbar p { margin: 0; color: var(--muted); }
+button {
+  border: 0;
+  border-radius: 10px;
+  background: var(--blue);
+  color: #fff;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+button:hover { filter: brightness(0.95); }
+button.success { background: var(--green); }
+.icon-btn { background: transparent; color: var(--text); font-size: 18px; padding: 6px 10px; }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(420px, 1.2fr);
+  gap: 18px;
+  padding: 18px;
+}
+.rooms-panel, .patient-panel, .patient-card, .modal-dialog {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+.rooms-panel, .patient-panel { padding: 18px; }
+.rooms-panel h2, .patient-panel h2 { margin-top: 0; }
+
+.status, .empty-state { color: var(--muted); }
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.bed-card {
+  text-align: left;
+  background: #f8fafc;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-left: 8px solid var(--muted);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 104px;
+}
+.bed-card.active { outline: 3px solid rgba(37, 99, 235, 0.25); }
+.bed-card.risk-green { border-left-color: var(--green); }
+.bed-card.risk-yellow { border-left-color: var(--yellow); }
+.bed-card.risk-red { border-left-color: var(--red); }
+.bed-card .room-bed { font-size: 18px; font-weight: 800; }
+.bed-card .time { color: var(--muted); font-size: 13px; margin-top: 6px; }
+.risk-pill {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+.risk-green .risk-pill { background: var(--green); }
+.risk-yellow .risk-pill { background: var(--yellow); }
+.risk-red .risk-pill { background: var(--red); }
+
+.patient-card { padding: 18px; }
+.card-header { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.meta { color: var(--muted); margin: 4px 0; }
+.section { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 14px; }
+.scale-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.scale-item { background: #f8fafc; border: 1px solid var(--line); padding: 10px; border-radius: 10px; }
+ul.clean { margin: 8px 0 0; padding-left: 20px; }
+.history-list { display: grid; gap: 8px; }
+.history-item { width: 100%; text-align: left; color: var(--text); background: #f8fafc; border: 1px solid var(--line); }
+
+.modal { display: none; position: fixed; inset: 0; z-index: 1000; }
+.modal[aria-hidden="false"] { display: block; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.55); }
+.modal-dialog { position: relative; margin: 4vh auto; width: min(980px, calc(100vw - 28px)); max-height: 92vh; display: flex; flex-direction: column; }
+.modal-header, .modal-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.modal-actions { justify-content: flex-end; border-top: 1px solid var(--line); border-bottom: 0; }
+.modal-body { padding: 18px; overflow: auto; }
+.plan-text { white-space: pre-wrap; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.plan-text[contenteditable="true"] { outline: 3px solid rgba(37, 99, 235, 0.25); background: #fff; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .rooms-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media print {
+  body.print-modal > *:not(.modal) { display: none !important; }
+  body.print-modal .modal { display: block !important; position: static; }
+  body.print-modal .modal-backdrop, body.print-modal .modal-actions, body.print-modal .icon-btn { display: none !important; }
+  body.print-modal .modal-dialog { box-shadow: none; border: 0; width: 100%; max-height: none; margin: 0; }
+  body.print-modal .scale-unassessed { display: none !important; }
+}
+
+.risk-pill.risk-green { background: var(--green); }
+.risk-pill.risk-yellow { background: var(--yellow); }
+.risk-pill.risk-red { background: var(--red); }
+
+.bed-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.bed-actions button {
+  flex: 1 1 auto;
+  padding: 7px 8px;
+  font-size: 12px;
+}
+.new-patient-btn { background: #475569; }
+.scale-note {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.scale-value { font-weight: 700; }
+.editable-list {
+  white-space: pre-wrap;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+.editable-list[contenteditable="true"] {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  background: #fff;
+}
+.handwrite-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin: 8px 0 14px;
+}
+.handwrite-line span {
+  flex: 1;
+  border-bottom: 1px solid #111827;
+  min-height: 24px;
+}
+.nurse-signature { margin-top: 22px; }
+.editable-list.is-editing {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  background: #fff;
+  cursor: text;
+}
+.editable-list.is-editing::before {
+  content: "Redaguojama: galite keisti problemų sąrašą";
+  display: block;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.editable-textarea {
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  font: inherit;
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  background: #fff;
+}
+.editable-textarea::placeholder {
+  color: #64748b;
+}
+
+.preview-note {
+  color: var(--blue);
+  font-weight: 700;
+  margin-top: 0;
+}
+@media print {
+  body.print-modal .preview-note { display: none !important; }
+}
+
+.compact-scale-list p {
+  margin: 4px 0;
+}
+.print-preview-content .scale-grid {
+  display: block;
+}
+.print-preview-content .scale-item,
+.print-preview-content .editable-list,
+.print-preview-content .plan-text {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+.print-preview-content .section {
+  border-top: 0;
+  margin-top: 18px;
+  padding-top: 0;
+}
+
+.scale-context p {
+  margin: 4px 0 8px;
+}
+.scale-context:empty {
+  display: none;
+}
