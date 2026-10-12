@@ -206,6 +206,16 @@ button.good { background: var(--ok); color: #fff; font-weight: 800; }
 .status { max-width: 1100px; margin: 0 auto; padding: 0 16px 10px; display: none; }
 .status.ok  { color: var(--ok);  font-weight: 900; }
 .status.err { color: var(--bad); font-weight: 900; }
+.reassessment-context {
+  max-width: 1100px;
+  margin: 0 auto 14px;
+  padding: 12px 16px;
+  border: 1px solid #93c5fd;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-weight: 700;
+}
 
 /* ── PIRMINIS VERTINIMAS ── */
 details.pv summary { cursor: pointer; font-weight: 900; color: var(--text); }

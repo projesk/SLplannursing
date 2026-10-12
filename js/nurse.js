@@ -110,7 +110,7 @@ function normalizeRecords(records) {
         parsed.galimos = storedEdit.galimos;
         parsed.plan = storedEdit.planas;
       }
-      return {
+      const normalizedRecord = {
         id: `${record.uploadedAt || record.Laikas || index}_${index}`,
         uploadedAt: record.uploadedAt || '',
         time: record.Laikas || raw.Laikas || record.laikas || '',
@@ -123,9 +123,59 @@ function normalizeRecords(records) {
         parsed,
         editedPlan: storedEdit ? storedEdit.planas : null
       };
+      normalizedRecord.scaleAssessments = normalizeScaleAssessments(normalizedRecord, raw.scaleAssessments);
+      return normalizedRecord;
     })
     .filter(record => record.palata && record.lova)
     .sort((a, b) => getRecordDate(b) - getRecordDate(a));
+}
+
+function normalizeScaleAssessments(record, storedAssessments) {
+  if (Array.isArray(storedAssessments) && storedAssessments.length) {
+    return storedAssessments.flatMap(item => {
+      const type = String(item && item.type || '').toUpperCase();
+      const risk = getScaleRisk(type, item && item.score);
+      if (!REASSESSMENT_CONFIG[type] || !risk) return [];
+      const intervalDays = Number.isInteger(item.intervalDays)
+        ? item.intervalDays
+        : REASSESSMENT_CONFIG[type].intervals[risk.category];
+      const performedAt = item.performedAt || record.uploadedAt || record.time || null;
+      const performedDate = performedAt ? new Date(performedAt) : new Date(NaN);
+      return [{
+        type,
+        score: Number(item.score),
+        riskCategory: risk.category,
+        riskLabel: item.riskLabel || risk.label,
+        performedAt,
+        intervalDays: Number.isInteger(intervalDays) ? intervalDays : null,
+        nextDueDate: item.nextDueDate || (Number.isInteger(intervalDays) && !Number.isNaN(performedDate.getTime()) ? addCalendarDays(performedDate, intervalDays) : null),
+        pilotInterval: Boolean(REASSESSMENT_CONFIG[type].pilot)
+      }];
+    });
+  }
+
+  const recordDate = getRecordDate(record);
+  const performedAt = recordDate.getTime() > 0 ? recordDate.toISOString() : null;
+  return [
+    ['MUST', record.parsed.must],
+    ['BRADEN', record.parsed.braden],
+    ['MORSE', record.parsed.morse]
+  ].flatMap(([type, score]) => {
+    const risk = getScaleRisk(type, score);
+    if (!risk) return [];
+    const intervalDays = REASSESSMENT_CONFIG[type].intervals[risk.category];
+    return [{
+      type,
+      score,
+      riskCategory: risk.category,
+      riskLabel: risk.label,
+      performedAt,
+      intervalDays: Number.isInteger(intervalDays) ? intervalDays : null,
+      nextDueDate: performedAt && Number.isInteger(intervalDays) ? addCalendarDays(recordDate, intervalDays) : null,
+      pilotInterval: Boolean(REASSESSMENT_CONFIG[type].pilot),
+      legacy: true
+    }];
+  });
 }
 
 function normalizeStoredEdit(value) {
@@ -311,6 +361,7 @@ function renderPatientCard(key) {
         <span class="risk-pill">${risk.label}</span>
       </div>
       ${renderScaleSummary(latest, { historyRecords: records })}
+      ${renderReassessmentReminders(records, latest)}
       ${renderProblems('Esamos slaugos problemos', latest.parsed.esamos)}
       ${renderProblems('Galimos problemos / rizikos', latest.parsed.galimos)}
       <div class="section">
@@ -325,6 +376,55 @@ function renderPatientCard(key) {
   panel.querySelectorAll('[data-record-id]').forEach(button => {
     button.addEventListener('click', () => openPlanModal(records.find(record => record.id === button.dataset.recordId)));
   });
+}
+
+function renderReassessmentReminders(records, latest) {
+  const latestByType = new Map();
+  records.forEach(record => {
+    (record.scaleAssessments || []).forEach(assessment => {
+      if (!latestByType.has(assessment.type)) latestByType.set(assessment.type, assessment);
+    });
+  });
+
+  const cards = ['MUST', 'BRADEN', 'MORSE'].map(type => {
+    const assessment = latestByType.get(type) || null;
+    const status = assessment
+      ? getReminderStatus(assessment.nextDueDate)
+      : { key: 'needs', label: 'Reikia atlikti arba patikrinti' };
+    const config = REASSESSMENT_CONFIG[type];
+    const performed = assessment && assessment.performedAt
+      ? formatAssessmentDate({ uploadedAt: assessment.performedAt })
+      : 'patikimos datos nėra';
+    const score = assessment ? `${assessment.score} bal. · ${assessment.riskLabel}` : 'Šiame epizode dar neįvertinta';
+    const due = assessment && assessment.nextDueDate
+      ? `Kitas terminas: ${assessment.nextDueDate}`
+      : 'Kitas terminas nenustatytas';
+    const recommendation = assessment ? getScaleRecommendation(type, assessment.riskCategory) : '';
+    const pilot = config.pilot ? '<span class="pilot-note">Siūlomas pilotinis intervalas – turi patvirtinti įstaiga.</span>' : '';
+    const href = buildReassessmentUrl(latest, type);
+
+    return `<a class="reminder-card reminder-${status.key}" href="${escapeHtml(href)}">
+      <span class="reminder-heading"><strong>${escapeHtml(config.label)}</strong><span class="reminder-status">${escapeHtml(status.label)}</span></span>
+      <span>${escapeHtml(score)}</span>
+      <span class="meta">Paskutinis vertinimas: ${escapeHtml(performed)} · ${escapeHtml(due)}</span>
+      ${recommendation ? `<span class="reminder-recommendation">${escapeHtml(recommendation)}</span>` : ''}
+      ${pilot}
+    </a>`;
+  }).join('');
+
+  return `<div class="section reassessment-reminders"><h3>Pakartotinių vertinimų priminimai</h3>
+    <p class="meta">Papildomą vertinimą atlikite pasikeitus mobilumui ar bendrajai būklei, po operacijos, perkėlimo arba griuvimo.</p>
+    <div class="reminder-list">${cards}</div></div>`;
+}
+
+function buildReassessmentUrl(record, type) {
+  const params = new URLSearchParams({
+    palata: record.palata,
+    lova: record.lova,
+    episodeId: record.episodeId,
+    assessment: type
+  });
+  return `index.html?${params.toString()}`;
 }
 
 function renderScaleSummary(record, options = {}) {

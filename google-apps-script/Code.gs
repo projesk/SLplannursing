@@ -111,6 +111,10 @@ function doPost(e) {
     const sheet = ensureSheet_();
     const uploadedAt = new Date();
     const episodeId = getOrCreateEpisodeId_(sheet, payload.palata, payload.lova);
+    const requestedEpisodeId = String(payload.episodeId || '').trim();
+    if (requestedEpisodeId && requestedEpisodeId !== episodeId) {
+      throw new Error('The requested patient episode is no longer active for this bed. Refresh the nurse station before reassessing.');
+    }
     const assessmentId = Utilities.getUuid();
     payload.episodeId = episodeId;
     payload.assessmentId = assessmentId;

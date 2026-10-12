@@ -4,6 +4,16 @@ function initForms() {
   bindVisibilityToggle('zaizdos', 'zaizdos_aprasymas', value => value === 'yra');
   bindVisibilityToggle('pragulos', 'pragulos_detales', value => value === 'yra');
   bindVisibilityToggle('suvarzymas', 'fiksacija_detales', (_value, el) => el.checked, 'change');
+  bindVisibilityToggle('griuvimo_ivykis', 'griuvimo_detales', value => value === 'taip');
+
+  const fallEvent = document.getElementById('griuvimo_ivykis');
+  const fallTime = document.getElementById('griuvimo_laikas');
+  fallEvent.addEventListener('change', () => {
+    if (fallEvent.value !== 'taip' || fallTime.value) return;
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    fallTime.value = local.toISOString().slice(0, 16);
+  });
 
   const skausmas = document.getElementById('skausmas');
   const skausmoLygis = document.getElementById('skausmoLygis');
@@ -53,7 +63,7 @@ function resetForm() {
     if (el) el.style.display = 'none';
   });
 
-  ['zaizdos_aprasymas', 'pragulos_detales', 'skausmo_detales', 'fiksacija_detales', 'dieta_kita_wrap'].forEach(id => {
+  ['zaizdos_aprasymas', 'pragulos_detales', 'skausmo_detales', 'fiksacija_detales', 'griuvimo_detales', 'dieta_kita_wrap'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -74,5 +84,31 @@ function resetForm() {
   if (typeof closeMust   === 'function') closeMust();
   if (typeof closeMorse  === 'function') closeMorse();
 
+  window.reassessmentContextData = null;
+  const reassessmentNotice = document.getElementById('reassessmentContext');
+  if (reassessmentNotice) reassessmentNotice.hidden = true;
+  if (window.history && window.location.search) {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+
   lastPayload = null;
+}
+
+function applyReassessmentContext() {
+  const params = new URLSearchParams(window.location.search);
+  const type = String(params.get('assessment') || '').toUpperCase();
+  const openers = { MUST: openMust, BRADEN: openBraden, MORSE: openMorse };
+  if (!openers[type]) return;
+
+  const palata = String(params.get('palata') || '').trim();
+  const lova = String(params.get('lova') || '').trim();
+  const episodeId = String(params.get('episodeId') || '').trim();
+  if (palata) document.getElementById('palata').value = palata;
+  if (lova) document.getElementById('lova').value = lova;
+
+  window.reassessmentContextData = { type, episodeId };
+  const notice = document.getElementById('reassessmentContext');
+  notice.hidden = false;
+  notice.textContent = `Pakartotinis ${REASSESSMENT_CONFIG[type].label} vertinimas · Palata ${palata || '—'}, lova ${lova || '—'}. Papildomą vertinimą galima atlikti bet kada pasikeitus paciento būklei.`;
+  setTimeout(openers[type], 0);
 }

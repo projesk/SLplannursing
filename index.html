@@ -4,11 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Paciento vertinimas ir slaugos planas</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20261012-1">
 </head>
 <body>
 
 <h1>Paciento vertinimas ir slaugos planas</h1>
+
+<div id="reassessmentContext" class="reassessment-context" hidden></div>
 
 <form id="nursingForm" novalidate>
   <div class="grid">
@@ -278,6 +280,18 @@
             <option value="taip">Taip</option>
           </select>
         </label>
+      </div>
+      <label for="griuvimo_ivykis">Griuvimo įvykis
+        <select id="griuvimo_ivykis" name="griuvimo_ivykis">
+          <option value="ne">Ne</option>
+          <option value="taip">Taip</option>
+        </select>
+      </label>
+      <div id="griuvimo_detales" style="display:none; margin-top:10px;">
+        <label for="griuvimo_laikas">Griuvimo data ir laikas
+          <input id="griuvimo_laikas" name="griuvimo_laikas" type="datetime-local">
+        </label>
+        <div class="hint">Pažymėjus griuvimą būtina vadovautis įstaigos patvirtinta veiksmų po griuvimo tvarka ir pakartotinai įvertinti griuvimų riziką.</div>
       </div>
       <!-- Morse vertinimas -->
       <button type="button" class="secondary" id="openMorseBtn" style="margin-top:10px">
@@ -584,13 +598,14 @@
 <!-- JS: tvarka svarbi – priklausomybės iš viršaus į apačią -->
 <script src="data/careLibrary.js"></script>
 <script src="js/calculators.js"></script>
+<script src="js/reassessment.js?v=20261012-1"></script>
 <script src="js/library.js"></script>
 <script src="js/rules.js"></script>
 <script src="js/popups.js?v=20261012-1"></script>
-<script src="js/generator.js?v=20261012-1"></script>
-<script src="js/forms.js"></script>
+<script src="js/generator.js?v=20261012-2"></script>
+<script src="js/forms.js?v=20261012-1"></script>
 <script src="js/print.js"></script>
-<script src="js/app.js"></script>
+<script src="js/app.js?v=20261012-1"></script>
 
 </body>
 </html>

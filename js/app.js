@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Morse
   document.getElementById('openMorseBtn').addEventListener('click', openMorse);
 
+  applyReassessmentContext();
+
   // ESC uždaro aktyvų modalą
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;

@@ -27,6 +27,8 @@
 - Slaugytojos puslapio `list` užklausa skaito tik lapą `Vertinimai`, todėl archyvuotos istorijos slaugytojos lange neberodomos.
 - `cleanupArchivedHistories()` kiekvienai palatai ir lovai palieka dvi naujausias neaktyvias istorijas, o senesnes ištrina.
 - `setup()` sukuria savaitinį pirmadienio trigerį, kuris apie 3 val. automatiškai paleidžia archyvo valymą.
+- Nauji įrašai žaliame JSON lauke turi `scaleAssessments` masyvą su MUST, Braden ir Morse atlikimo laiku, balu, rizikos kategorija bei kito vertinimo terminu. Seni įrašai lieka suderinami ir nėra perrašomi.
+- Iš slaugytojos posto pradėtas pakartotinis vertinimas perduoda aktyvaus epizodo ID. Apps Script prieš įrašydamas patikrina, ar tas epizodas vis dar aktyvus pasirinktai palatai ir lovai.
 
 ## Patikra
 

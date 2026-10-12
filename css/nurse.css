@@ -95,6 +95,7 @@ button.danger { background: var(--red); }
 
 .patient-card { padding: 18px; }
 .card-header { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.card-header h2 { font-size: 20px; }
 .meta { color: var(--muted); margin: 4px 0; }
 .section { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 14px; }
 .scale-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -129,6 +130,7 @@ ul.clean { margin: 8px 0 0; padding-left: 20px; }
   body.print-modal .modal-backdrop, body.print-modal .modal-actions, body.print-modal .icon-btn { display: none !important; }
   body.print-modal .modal-dialog { box-shadow: none; border: 0; width: 100%; max-height: none; margin: 0; }
   body.print-modal .scale-unassessed { display: none !important; }
+  body.print-modal .modal-header h2 { font-size: 16px; }
 }
 
 .risk-pill.risk-green { background: var(--green); }
@@ -171,6 +173,27 @@ ul.clean { margin: 8px 0 0; padding-left: 20px; }
   border-top: 1px solid var(--line);
 }
 .vitals-history-item time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.reminder-list { display: grid; gap: 8px; }
+.reminder-card {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-left: 6px solid var(--green);
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+  background: #f8fafc;
+}
+.reminder-card:hover { background: #eff6ff; }
+.reminder-heading { display: flex; justify-content: space-between; gap: 12px; }
+.reminder-status { font-weight: 800; }
+.reminder-upcoming { border-left-color: #eab308; }
+.reminder-due { border-left-color: var(--yellow); }
+.reminder-overdue, .reminder-needs { border-left-color: var(--red); }
+.reminder-unknown { border-left-color: var(--muted); }
+.reminder-recommendation { font-weight: 700; color: #92400e; }
+.pilot-note { color: var(--muted); font-size: 12px; font-style: italic; }
 @media (max-width: 600px) {
   .vitals-history-item { grid-template-columns: 1fr; gap: 3px; }
 }

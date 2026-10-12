@@ -75,6 +75,11 @@ function collectRenderData(f, ctx) {
     hasDiet: Boolean((dietCode && dietCode !== 'KITA' && dietCode !== '—') || (dietCode === 'KITA' && dietCustom)),
     additionalDetails: collectAdditionalDetails(f),
     scalesSummary: buildScalesSummary(),
+    scaleAssessments: buildScaleAssessments({
+      MUST: typeof mustScore === 'number' ? mustScore : null,
+      BRADEN: typeof bradenScore === 'number' ? bradenScore : null,
+      MORSE: typeof morseScore === 'number' ? morseScore : null
+    }),
     pvSelected: pv.selected,
     pvExtraItems: pv.extraItems,
     pvSummaryText: pv.summaryText,
@@ -172,6 +177,10 @@ function collectAdditionalDetails(f) {
   add('Pagalbinė priemonė', valueText('pagalbine_priemone', { nera: 'nėra', lazda: 'lazda', vaikstyne: 'vaikštynė', vezimelis: 'vežimėlis' }));
   add('Kontraktūrų rizika', valueText('kontrakturu_rizika', { taip: 'taip', ne: 'ne' }));
   add('Silpnumas', valueText('silpnumas', { taip: 'taip', ne: 'ne' }));
+  if (f['griuvimo_ivykis'] && f['griuvimo_ivykis'].value === 'taip') {
+    add('Griuvimo įvykis', 'taip – vadovautis įstaigos patvirtinta veiksmų po griuvimo tvarka');
+    add('Griuvimo data ir laikas', valueText('griuvimo_laikas'));
+  }
   add('Odos paraudimas / iššutimas', valueText('odos_paraudimas', { nera: 'nėra', yra: 'yra' }));
 
   if (f['pragulos'] && f['pragulos'].value === 'yra') {
@@ -208,6 +217,7 @@ function collectAdditionalDetails(f) {
 function buildResultsHtml(data) {
   return [
     buildVitalsHtml(data),
+    buildReassessmentGuidanceHtml(data.scaleAssessments),
     buildPsychologicalHtml(data),
     buildProblemsHtml('Esamos problemos', data.esamosU),
     buildProblemsHtml('Galimos problemos', data.galimosU),
@@ -216,6 +226,14 @@ function buildResultsHtml(data) {
     buildPrimaryAssessmentHtml(data),
     buildDietHintHtml(data)
   ].join('');
+}
+
+function buildReassessmentGuidanceHtml(assessments) {
+  const messages = assessments
+    .map(item => getScaleRecommendation(item.type, item.riskCategory))
+    .filter(Boolean);
+  if (!messages.length) return '';
+  return `<div class="planas"><strong>Vertinimo rekomendacijos</strong><ul>${messages.map(message => `<li>${esc(message)}</li>`).join('')}</ul></div>`;
 }
 
 function buildVitalsHtml(data) {
@@ -301,6 +319,21 @@ function getPlanItemsForProblem(problem, data) {
   }
   if (data.pvExtraItems.length) addItems(uniq(data.pvExtraItems));
 
+  return planItems;
+}
+
+function formatVitalsLine(vitals) {
+  const { spo2, sys, dia, map, hr, temp } = vitals;
+  const aksStr = sys != null && dia != null ? `${sys}/${dia} mmHg${map != null ? ` (MAP ${map})` : ''}` : null;
+
+  return [
+    spo2 != null ? `SpO₂ ${spo2} %` : null,
+    aksStr ? `AKS ${aksStr}` : null,
+    hr != null ? `ŠSD ${hr}/min` : null,
+    temp != null ? `T ${Number(temp).toFixed(1)} °C` : null
+  ].filter(Boolean).join(', ') || '-';
+}
+
   return items;
 }
 
@@ -331,6 +364,12 @@ function buildDietHintHtml(data) {
 function buildPayload(f, data) {
   const planItems = collectPlanItems(data);
   const vitalsLine = formatVitalsLine(data.vitals);
+  const createdAt = new Date();
+  const scaleAssessments = buildScaleAssessments({
+    MUST: typeof mustScore === 'number' ? mustScore : null,
+    BRADEN: typeof bradenScore === 'number' ? bradenScore : null,
+    MORSE: typeof morseScore === 'number' ? morseScore : null
+  }, createdAt);
 
   let irasas =
     `Gyvybiniai rodikliai:\n${vitalsLine}\n` +
@@ -350,131 +389,21 @@ function buildPayload(f, data) {
   if (data.pvSummaryText) irasas += `\n\nPirminis vertinimas:\n${data.pvSummaryText}`;
 
   lastPayload = {
-    Laikas: new Date().toLocaleString('lt-LT'),
+    Laikas: createdAt.toLocaleString('lt-LT'),
     palata: (f['palata'].value || '').trim(),
     lova: (f['lova'].value || '').trim(),
-    įrašas: irasas
+    įrašas: irasas,
+    scaleAssessments,
+    episodeId: window.reassessmentContextData ? window.reassessmentContextData.episodeId : '',
+    reassessmentType: window.reassessmentContextData ? window.reassessmentContextData.type : '',
+    fallEvent: f['griuvimo_ivykis'] && f['griuvimo_ivykis'].value === 'taip' ? {
+      occurred: true,
+      occurredAt: (f['griuvimo_laikas'].value || '').trim(),
+      instruction: 'Vadovautis įstaigos patvirtinta veiksmų po griuvimo tvarka.'
+    } : null
   };
 
   document.getElementById('results').insertAdjacentHTML('beforeend', `<div class="mono">${esc(JSON.stringify(lastPayload, null, 2))}</div>`);
-}
-
-
-function dedupeInterventionLines(items, seen = new Set()) {
-  const unique = [];
-
-  items.forEach(item => {
-    const normalized = normalizeInterventionLine(item);
-    if (!normalized || seen.has(normalized)) return;
-    seen.add(normalized);
-    unique.push(item);
-  });
-
-  return unique;
-}
-
-function normalizeInterventionLine(line) {
-  return String(line || '')
-    .replace(/^\s*•\s*/, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/[.,;:]+$/g, '')
-    .trim()
-    .toLowerCase();
-}
-
-function collectPlanItems(data) {
-  const seen = new Set();
-  const planItems = [];
-
-  const addItems = items => {
-    planItems.push(...dedupeInterventionLines(items, seen));
-  };
-
-  if (data.combineBedRestAndUlcers) addItems(getProblemInterventions('Gulimas režimas ir pragulos'));
-
-  [...data.esamosU, ...data.galimosU].forEach(problem => addItems(getPlanItemsForProblem(problem, data)));
-
-  if (data.painBlock) addItems(getProblemInterventions(data.painBlock.key));
-  if (data.dietCode && data.dietCode !== 'KITA' && data.dietCode !== '—') addItems(getDietPlan(data.dietCode));
-  if (data.isRestrained) {
-    addItems([`Fizinė fiksacija taikoma nuo ${formatRestraintStartDateTime()}.`]);
-    addItems(getProblemInterventions('Taikoma fizinė fiksacija'));
-  }
-  if (data.pvExtraItems.length) addItems(uniq(data.pvExtraItems));
-
-  return planItems;
-}
-
-function formatVitalsLine(vitals) {
-  const { spo2, sys, dia, map, hr, temp } = vitals;
-  const aksStr = sys != null && dia != null ? `${sys}/${dia} mmHg${map != null ? ` (MAP ${map})` : ''}` : null;
-
-  return [
-    spo2 != null ? `SpO₂ ${spo2} %` : null,
-    aksStr ? `AKS ${aksStr}` : null,
-    hr != null ? `ŠSD ${hr}/min` : null,
-    temp != null ? `T ${Number(temp).toFixed(1)} °C` : null
-  ].filter(Boolean).join(', ') || '-';
-}
-
-
-function dedupeInterventionLines(items, seen = new Set()) {
-  const unique = [];
-
-  items.forEach(item => {
-    const normalized = normalizeInterventionLine(item);
-    if (!normalized || seen.has(normalized)) return;
-    seen.add(normalized);
-    unique.push(item);
-  });
-
-  return unique;
-}
-
-function normalizeInterventionLine(line) {
-  return String(line || '')
-    .replace(/^\s*•\s*/, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/[.,;:]+$/g, '')
-    .trim()
-    .toLowerCase();
-}
-
-function collectPlanItems(data) {
-  const seen = new Set();
-  const planItems = [];
-
-  const addItems = items => {
-    planItems.push(...dedupeInterventionLines(items, seen));
-  };
-
-  if (data.combineBedRestAndUlcers) addItems(getProblemInterventions('Gulimas režimas ir pragulos'));
-
-  [...data.esamosU, ...data.galimosU].forEach(problem => addItems(getPlanItemsForProblem(problem, data)));
-
-  if (data.painBlock) addItems(getProblemInterventions(data.painBlock.key));
-  if (data.dietCode && data.dietCode !== 'KITA' && data.dietCode !== '—') addItems(getDietPlan(data.dietCode));
-  if (data.isRestrained) {
-    addItems([`Fizinė fiksacija taikoma nuo ${formatRestraintStartDateTime()}.`]);
-    addItems(getProblemInterventions('Taikoma fizinė fiksacija'));
-  }
-  if (data.pvExtraItems.length) addItems(uniq(data.pvExtraItems));
-
-  return planItems;
-}
-
-function formatVitalsLine(vitals) {
-  const { spo2, sys, dia, map, hr, temp } = vitals;
-  const aksStr = sys != null && dia != null ? `${sys}/${dia} mmHg${map != null ? ` (MAP ${map})` : ''}` : null;
-
-  return [
-    spo2 != null ? `SpO₂ ${spo2} %` : null,
-    aksStr ? `AKS ${aksStr}` : null,
-    hr != null ? `ŠSD ${hr}/min` : null,
-    temp != null ? `T ${Number(temp).toFixed(1)} °C` : null
-  ].filter(Boolean).join(', ') || '-';
 }
 
 
