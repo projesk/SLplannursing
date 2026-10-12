@@ -732,7 +732,6 @@ function printCurrentPlan() {
   window.print();
   setTimeout(() => {
     document.body.classList.remove('print-modal');
-    if (nurseState.hasUnsavedChanges) showUnsavedChangesPrompt();
   }, 250);
 }
 
