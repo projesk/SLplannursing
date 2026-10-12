@@ -24,7 +24,8 @@ const CONFIG = {
     'Palata',
     'Lova',
     'Įrašas',
-    'Žali duomenys'
+    'Žali duomenys',
+    'Epizodo ID'
   ],
   ARCHIVE_HEADERS: [
     'Įkelta',
@@ -34,7 +35,8 @@ const CONFIG = {
     'Įrašas',
     'Žali duomenys',
     'Istorija užbaigta',
-    'Istorijos ID'
+    'Istorijos ID',
+    'Epizodo ID'
   ]
 };
 
@@ -99,6 +101,8 @@ function doPost(e) {
 
     const sheet = ensureSheet_();
     const uploadedAt = new Date();
+    const episodeId = getOrCreateEpisodeId_(sheet, payload.palata, payload.lova);
+    payload.episodeId = episodeId;
 
     sheet.appendRow([
       uploadedAt,
@@ -106,12 +110,14 @@ function doPost(e) {
       payload.palata || '',
       payload.lova || '',
       payload['įrašas'] || payload.irasas || '',
-      JSON.stringify(payload)
+      JSON.stringify(payload),
+      episodeId
     ]);
 
     return jsonResponse_({
       ok: true,
-      message: 'Assessment saved.'
+      message: 'Assessment saved.',
+      episodeId
     });
   } catch (error) {
     return jsonResponse_({ ok: false, error: String(error && error.message ? error.message : error) });
@@ -217,7 +223,7 @@ function archiveBedRows_(palata, lova) {
     const rowsToArchive = [];
     const sourceRowsToDelete = [];
     const closedAt = new Date();
-    const historyId = Utilities.getUuid();
+    let historyId = '';
 
     for (let i = 0; i < values.length; i++) {
       const row = values[i];
@@ -226,18 +232,28 @@ function archiveBedRows_(palata, lova) {
       const rowBed = String(row[3] || raw.lova || '').trim();
 
       if (rowRoom === room && rowBed === bed) {
-        rowsToArchive.push([...row, closedAt, historyId]);
+        const episodeId = String(row[6] || raw.episodeId || '').trim();
+        if (!historyId && episodeId) historyId = episodeId;
+        rowsToArchive.push({ row, episodeId });
         sourceRowsToDelete.push(i + 2);
       }
     }
 
     if (!rowsToArchive.length) return { ok: true, archived: 0 };
+    if (!historyId) historyId = Utilities.getUuid();
+
+    const archiveValues = rowsToArchive.map(item => [
+      ...item.row.slice(0, 6),
+      closedAt,
+      historyId,
+      item.episodeId || historyId
+    ]);
 
     const archiveSheet = ensureArchiveSheet_();
     const archiveStartRow = archiveSheet.getLastRow() + 1;
     archiveSheet
-      .getRange(archiveStartRow, 1, rowsToArchive.length, CONFIG.ARCHIVE_HEADERS.length)
-      .setValues(rowsToArchive);
+      .getRange(archiveStartRow, 1, archiveValues.length, CONFIG.ARCHIVE_HEADERS.length)
+      .setValues(archiveValues);
     SpreadsheetApp.flush();
 
     sourceRowsToDelete.sort((a, b) => b - a).forEach(rowNumber => sheet.deleteRow(rowNumber));
@@ -246,6 +262,38 @@ function archiveBedRows_(palata, lova) {
   } finally {
     lock.releaseLock();
   }
+}
+
+function getOrCreateEpisodeId_(sheet, palata, lova) {
+  const room = String(palata || '').trim();
+  const bed = String(lova || '').trim();
+  if (!room || !bed) throw new Error('Payload is missing palata or lova.');
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return Utilities.getUuid();
+
+  const values = sheet.getRange(2, 1, lastRow - 1, CONFIG.HEADERS.length).getValues();
+  const matchingRows = [];
+  let episodeId = '';
+
+  values.forEach((row, index) => {
+    const raw = parseRawPayload_(row[5]);
+    const rowRoom = String(row[2] || raw.palata || '').trim();
+    const rowBed = String(row[3] || raw.lova || '').trim();
+    if (rowRoom !== room || rowBed !== bed) return;
+
+    matchingRows.push({ rowNumber: index + 2, episodeId: String(row[6] || raw.episodeId || '').trim() });
+  });
+
+  const latestIdentifiedRow = [...matchingRows].reverse().find(item => item.episodeId);
+  if (latestIdentifiedRow) episodeId = latestIdentifiedRow.episodeId;
+  if (!episodeId) episodeId = Utilities.getUuid();
+
+  matchingRows.forEach(item => {
+    if (!item.episodeId) sheet.getRange(item.rowNumber, 7).setValue(episodeId);
+  });
+
+  return episodeId;
 }
 
 function parseRawPayload_(rawText) {
@@ -272,6 +320,7 @@ function listAssessmentRows_() {
       palata: row[2] || raw.palata || '',
       lova: row[3] || raw.lova || '',
       irasas: row[4] || raw['įrašas'] || raw.irasas || '',
+      episodeId: row[6] || raw.episodeId || '',
       raw
     };
   }).filter(record => record.palata && record.lova);

@@ -1,6 +1,6 @@
 /* nurse.js – slaugytojos posto anoniminis palatų / lovų vaizdas */
 
-const NURSE_GOOGLE_SCRIPT_URL_FALLBACK = 'https://script.google.com/macros/s/AKfycbxODAbmdrmccCYCUkswsFgnz-nrC8clEQQf-5kId3y-3TCqUwsU4pyCze2Jojv43VV_1A/exec';
+const NURSE_GOOGLE_SCRIPT_URL_FALLBACK = 'https://script.google.com/macros/s/AKfycbyz9PsXD4u_e_QjM9ETDtEdTVcjEIaE0MFTACpzBSDE6Em6EeoP76495aE26HmqNk5KjQ/exec';
 let resolvedNurseGoogleScriptUrl = null;
 const ROOMS = ['1', '2', '3', '4', '5'];
 const BEDS = ['1', '2', '3', '4'];
@@ -105,6 +105,7 @@ function normalizeRecords(records) {
         time: record.Laikas || raw.Laikas || record.laikas || '',
         palata: String(record.palata || raw.palata || '').trim(),
         lova: String(record.lova || raw.lova || '').trim(),
+        episodeId: String(record.episodeId || raw.episodeId || '').trim(),
         text,
         parsed,
         editedPlan: null
@@ -172,8 +173,15 @@ function escapeRegExp(value) {
 
 function groupByBed(records) {
   const grouped = new Map();
+  const activeEpisodeByBed = new Map();
+
   records.forEach(record => {
     const key = bedKey(record.palata, record.lova);
+    const episodeKey = record.episodeId || '__legacy__';
+
+    if (!activeEpisodeByBed.has(key)) activeEpisodeByBed.set(key, episodeKey);
+    if (activeEpisodeByBed.get(key) !== episodeKey) return;
+
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key).push(record);
   });

@@ -19,7 +19,9 @@
 ## Duomenų saugojimas
 
 - Aktyvaus paciento duomenys saugomi lape `Vertinimai` ir pagal amžių automatiškai netrinami.
+- Kiekvienai aktyviai palatos/lovos istorijai Apps Script automatiškai suteikia anoniminį `Epizodo ID`; visi tos istorijos vertinimai gauna tą patį ID.
 - Paspaudus slaugytojos puslapio mygtuką „Naujas pacientas“, visi tos palatos ir lovos aktyvūs vertinimai perkeliami į lapą `Neaktyvios istorijos` kaip viena užbaigta istorija.
+- Po istorijos užbaigimo kitas tos pačios lovos vertinimas automatiškai gauna naują `Epizodo ID`.
 - Slaugytojos puslapio `list` užklausa skaito tik lapą `Vertinimai`, todėl archyvuotos istorijos slaugytojos lange neberodomos.
 - `cleanupArchivedHistories()` kiekvienai palatai ir lovai palieka dvi naujausias neaktyvias istorijas, o senesnes ištrina.
 - `setup()` sukuria savaitinį pirmadienio trigerį, kuris apie 3 val. automatiškai paleidžia archyvo valymą.

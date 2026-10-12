@@ -1,6 +1,6 @@
 /* generator.js – rezultatų generavimas ir atvaizdavimas */
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5HkZJT1ohJXkbAGdb-C9SkufhwOXAtt7_E9H9D6hb0UHUlCIsIwYVY2v3jsCH8GTZow/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz9PsXD4u_e_QjM9ETDtEdTVcjEIaE0MFTACpzBSDE6Em6EeoP76495aE26HmqNk5KjQ/exec';
 
 let lastPayload = null;
 
@@ -370,6 +370,51 @@ function dedupeInterventionLines(items, seen = new Set()) {
   });
 
   return unique;
+}
+
+function normalizeInterventionLine(line) {
+  return String(line || '')
+    .replace(/^\s*•\s*/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[.,;:]+$/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+function collectPlanItems(data) {
+  const seen = new Set();
+  const planItems = [];
+
+  const addItems = items => {
+    planItems.push(...dedupeInterventionLines(items, seen));
+  };
+
+  if (data.combineBedRestAndUlcers) addItems(getProblemInterventions('Gulimas režimas ir pragulos'));
+
+  [...data.esamosU, ...data.galimosU].forEach(problem => addItems(getPlanItemsForProblem(problem, data)));
+
+  if (data.painBlock) addItems(getProblemInterventions(data.painBlock.key));
+  if (data.dietCode && data.dietCode !== 'KITA' && data.dietCode !== '—') addItems(getDietPlan(data.dietCode));
+  if (data.isRestrained) {
+    addItems([`Fizinė fiksacija taikoma nuo ${formatRestraintStartDateTime()}.`]);
+    addItems(getProblemInterventions('Taikoma fizinė fiksacija'));
+  }
+  if (data.pvExtraItems.length) addItems(uniq(data.pvExtraItems));
+
+  return planItems;
+}
+
+function formatVitalsLine(vitals) {
+  const { spo2, sys, dia, map, hr, temp } = vitals;
+  const aksStr = sys != null && dia != null ? `${sys}/${dia} mmHg${map != null ? ` (MAP ${map})` : ''}` : null;
+
+  return [
+    spo2 != null ? `SpO₂ ${spo2} %` : null,
+    aksStr ? `AKS ${aksStr}` : null,
+    hr != null ? `ŠSD ${hr}/min` : null,
+    temp != null ? `T ${Number(temp).toFixed(1)} °C` : null
+  ].filter(Boolean).join(', ') || '-';
 }
 
 function normalizeInterventionLine(line) {
