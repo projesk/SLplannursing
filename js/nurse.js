@@ -41,7 +41,9 @@ function loadNurseData() {
 }
 
 function fetchAssessments() {
-  return getNurseGoogleScriptUrl().then(url => jsonp(`${url}?action=list`));
+  return getNurseGoogleScriptUrl()
+    .then(url => jsonp(`${url}?action=list`))
+    .then(data => data.records || []);
 }
 
 function clearBedAssessments(room, bed) {
@@ -77,7 +79,7 @@ function jsonp(url) {
       delete window[callbackName];
       script.remove();
       if (data && data.ok === false) reject(new Error(data.error || 'Apps Script error'));
-      else resolve(data.records || []);
+      else resolve(data || {});
     };
 
     script.onerror = () => {
@@ -233,21 +235,21 @@ function renderRoomsGrid() {
 
 
 function handleNewPatient(room, bed) {
-  const confirmed = window.confirm(`Ar norite ištrinti visus paciento vertinimus?\nPalata ${room}, lova ${bed}.`);
+  const confirmed = window.confirm(`Ar norite užbaigti dabartinio paciento istoriją?\nPalata ${room}, lova ${bed}.\n\nAktyvūs vertinimai bus perkelti į neaktyvių istorijų archyvą.`);
   if (!confirmed) return;
 
-  setLoading(`Trinami palatos ${room}, lovos ${bed} vertinimai…`);
+  setLoading(`Užbaigiama palatos ${room}, lovos ${bed} paciento istorija…`);
   clearBedAssessments(room, bed)
     .then(result => {
       if (!result || result.ok !== true) throw new Error(result && result.error ? result.error : 'Nepavyko ištrinti duomenų.');
       if (nurseState.selectedKey === bedKey(room, bed)) {
         nurseState.selectedKey = null;
-        document.getElementById('patientPanel').innerHTML = '<div class="empty-state"><h2>Pasirinkite palatą ir lovą</h2><p>Paciento duomenys ištrinti. Pasirinkite kitą lovą arba atnaujinkite sąrašą.</p></div>';
+        document.getElementById('patientPanel').innerHTML = '<div class="empty-state"><h2>Pasirinkite palatą ir lovą</h2><p>Paciento istorija užbaigta ir perkelta į neaktyvių istorijų archyvą.</p></div>';
       }
       return loadNurseData();
     })
     .catch(() => {
-      setLoading('Nepavyko ištrinti lovos duomenų. Patikrinkite Apps Script deployment teises.');
+      setLoading('Nepavyko užbaigti paciento istorijos. Patikrinkite Apps Script deployment teises.');
     });
 }
 

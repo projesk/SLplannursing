@@ -16,7 +16,8 @@ const CONFIG = {
   // directly to the Sheet. The ID is the long part between /d/ and /edit in the Sheet URL.
   SPREADSHEET_ID: '',
   SHEET_NAME: 'Vertinimai',
-  RETENTION_DAYS: 7,
+  ARCHIVE_SHEET_NAME: 'Neaktyvios istorijos',
+  ARCHIVED_HISTORIES_PER_BED: 2,
   HEADERS: [
     'Įkelta',
     'Vertinimo laikas',
@@ -24,17 +25,28 @@ const CONFIG = {
     'Lova',
     'Įrašas',
     'Žali duomenys'
+  ],
+  ARCHIVE_HEADERS: [
+    'Įkelta',
+    'Vertinimo laikas',
+    'Palata',
+    'Lova',
+    'Įrašas',
+    'Žali duomenys',
+    'Istorija užbaigta',
+    'Istorijos ID'
   ]
 };
 
 /**
- * Creates the storage sheet and installs a daily cleanup trigger.
+ * Creates active/archive sheets and installs a weekly archive cleanup trigger.
  * Run manually once after pasting this script into Apps Script.
  */
 function setup() {
   ensureSheet_();
-  installCleanupTrigger_();
-  cleanupOldRows();
+  ensureArchiveSheet_();
+  installArchiveCleanupTrigger_();
+  cleanupArchivedHistories();
 }
 
 /**
@@ -56,7 +68,7 @@ function doGet(e) {
     if (action === 'clearBed') {
       const palata = e && e.parameter && e.parameter.palata;
       const lova = e && e.parameter && e.parameter.lova;
-      return response_(callback, clearBedRows_(palata, lova));
+      return response_(callback, archiveBedRows_(palata, lova));
     }
 
     return response_(callback, {
@@ -97,12 +109,9 @@ function doPost(e) {
       JSON.stringify(payload)
     ]);
 
-    cleanupOldRows();
-
     return jsonResponse_({
       ok: true,
-      message: 'Assessment saved.',
-      retainedUntil: new Date(uploadedAt.getTime() + CONFIG.RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString()
+      message: 'Assessment saved.'
     });
   } catch (error) {
     return jsonResponse_({ ok: false, error: String(error && error.message ? error.message : error) });
@@ -129,24 +138,52 @@ function testWriteSample() {
 }
 
 /**
- * Deletes rows older than CONFIG.RETENTION_DAYS based on the uploaded-at column.
- * This is also safe to run manually.
+ * Keeps only the newest archived histories for each room/bed.
+ * One history can contain multiple assessment rows and is identified by history ID.
+ * This is safe to run manually and is also run by a weekly trigger.
  */
-function cleanupOldRows() {
-  const sheet = ensureSheet_();
+function cleanupArchivedHistories() {
+  const sheet = ensureArchiveSheet_();
   const lastRow = sheet.getLastRow();
   if (lastRow <= 1) return;
 
-  const cutoff = new Date(Date.now() - CONFIG.RETENTION_DAYS * 24 * 60 * 60 * 1000);
-  const uploadedAtValues = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  const values = sheet.getRange(2, 1, lastRow - 1, CONFIG.ARCHIVE_HEADERS.length).getValues();
+  const historiesByBed = {};
 
-  for (let i = uploadedAtValues.length - 1; i >= 0; i--) {
-    const value = uploadedAtValues[i][0];
-    const uploadedAt = value instanceof Date ? value : new Date(value);
-    if (uploadedAt instanceof Date && !Number.isNaN(uploadedAt.getTime()) && uploadedAt < cutoff) {
-      sheet.deleteRow(i + 2);
+  values.forEach((row, index) => {
+    const room = String(row[2] || '').trim();
+    const bed = String(row[3] || '').trim();
+    const closedAt = row[6] instanceof Date ? row[6] : new Date(row[6]);
+    const historyId = String(row[7] || '').trim();
+    if (!room || !bed || !historyId) return;
+
+    const bedKey = `${room}__${bed}`;
+    if (!historiesByBed[bedKey]) historiesByBed[bedKey] = {};
+    if (!historiesByBed[bedKey][historyId]) {
+      historiesByBed[bedKey][historyId] = {
+        closedAt: Number.isNaN(closedAt.getTime()) ? 0 : closedAt.getTime(),
+        rowIndexes: []
+      };
     }
-  }
+    historiesByBed[bedKey][historyId].rowIndexes.push(index + 2);
+  });
+
+  const rowsToDelete = [];
+  Object.keys(historiesByBed).forEach(bedKey => {
+    const histories = Object.values(historiesByBed[bedKey])
+      .sort((a, b) => b.closedAt - a.closedAt);
+
+    histories.slice(CONFIG.ARCHIVED_HISTORIES_PER_BED).forEach(history => {
+      rowsToDelete.push(...history.rowIndexes);
+    });
+  });
+
+  rowsToDelete.sort((a, b) => b - a).forEach(rowNumber => sheet.deleteRow(rowNumber));
+}
+
+// Compatibility for an old installed trigger. setup() removes that trigger.
+function cleanupOldRows() {
+  cleanupArchivedHistories();
 }
 
 
@@ -163,7 +200,7 @@ function getSpreadsheet_() {
 
 
 
-function clearBedRows_(palata, lova) {
+function archiveBedRows_(palata, lova) {
   const room = String(palata || '').trim();
   const bed = String(lova || '').trim();
   if (!room || !bed) return { ok: false, error: 'Missing palata or lova.' };
@@ -174,24 +211,38 @@ function clearBedRows_(palata, lova) {
   try {
     const sheet = ensureSheet_();
     const lastRow = sheet.getLastRow();
-    if (lastRow <= 1) return { ok: true, deleted: 0 };
+    if (lastRow <= 1) return { ok: true, archived: 0 };
 
     const values = sheet.getRange(2, 1, lastRow - 1, CONFIG.HEADERS.length).getValues();
-    let deleted = 0;
+    const rowsToArchive = [];
+    const sourceRowsToDelete = [];
+    const closedAt = new Date();
+    const historyId = Utilities.getUuid();
 
-    for (let i = values.length - 1; i >= 0; i--) {
+    for (let i = 0; i < values.length; i++) {
       const row = values[i];
       const raw = parseRawPayload_(row[5]);
       const rowRoom = String(row[2] || raw.palata || '').trim();
       const rowBed = String(row[3] || raw.lova || '').trim();
 
       if (rowRoom === room && rowBed === bed) {
-        sheet.deleteRow(i + 2);
-        deleted++;
+        rowsToArchive.push([...row, closedAt, historyId]);
+        sourceRowsToDelete.push(i + 2);
       }
     }
 
-    return { ok: true, deleted };
+    if (!rowsToArchive.length) return { ok: true, archived: 0 };
+
+    const archiveSheet = ensureArchiveSheet_();
+    const archiveStartRow = archiveSheet.getLastRow() + 1;
+    archiveSheet
+      .getRange(archiveStartRow, 1, rowsToArchive.length, CONFIG.ARCHIVE_HEADERS.length)
+      .setValues(rowsToArchive);
+    SpreadsheetApp.flush();
+
+    sourceRowsToDelete.sort((a, b) => b - a).forEach(rowNumber => sheet.deleteRow(rowNumber));
+
+    return { ok: true, archived: rowsToArchive.length, historyId };
   } finally {
     lock.releaseLock();
   }
@@ -247,15 +298,37 @@ function ensureSheet_() {
   return sheet;
 }
 
-function installCleanupTrigger_() {
+function ensureArchiveSheet_() {
+  const spreadsheet = getSpreadsheet_();
+  let sheet = spreadsheet.getSheetByName(CONFIG.ARCHIVE_SHEET_NAME);
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(CONFIG.ARCHIVE_SHEET_NAME);
+  }
+
+  const headerRange = sheet.getRange(1, 1, 1, CONFIG.ARCHIVE_HEADERS.length);
+  const currentHeaders = headerRange.getValues()[0];
+  const hasHeaders = CONFIG.ARCHIVE_HEADERS.every((header, index) => currentHeaders[index] === header);
+
+  if (!hasHeaders) {
+    headerRange.setValues([CONFIG.ARCHIVE_HEADERS]);
+    sheet.setFrozenRows(1);
+    sheet.autoResizeColumns(1, CONFIG.ARCHIVE_HEADERS.length);
+  }
+
+  return sheet;
+}
+
+function installArchiveCleanupTrigger_() {
+  const cleanupHandlers = ['cleanupOldRows', 'cleanupArchivedHistories'];
   const existing = ScriptApp.getProjectTriggers()
-    .filter(trigger => trigger.getHandlerFunction() === 'cleanupOldRows');
+    .filter(trigger => cleanupHandlers.includes(trigger.getHandlerFunction()));
 
-  if (existing.length > 0) return;
+  existing.forEach(trigger => ScriptApp.deleteTrigger(trigger));
 
-  ScriptApp.newTrigger('cleanupOldRows')
+  ScriptApp.newTrigger('cleanupArchivedHistories')
     .timeBased()
-    .everyDays(1)
+    .everyWeeks(1)
     .atHour(3)
     .create();
 }
