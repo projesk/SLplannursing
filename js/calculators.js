@@ -10,80 +10,106 @@ function calcMAP(sys, dia) {
   return Math.round(((2 * dia) + sys) / 3);
 }
 
-function calcNEWS2({ rr, spo2, onO2, temp, sys, hr, avpu }) {
+function calcNEWS2({ rr, spo2, spo2Scale = '1', onO2, temp, sys, hr, avpu }) {
   let score = 0;
-  let hasCritical = false;
+  let hasRedScore = false;
+  const missingFields = [];
+
+  function add(points) {
+    score += points;
+    if (points === 3) hasRedScore = true;
+  }
 
   // Kvėpavimo dažnis
-  if (rr != null) {
-    if (rr <= 8)       { score += 3; hasCritical = true; }
-    else if (rr <= 11)   score += 1;
-    else if (rr <= 20)   score += 0;
-    else if (rr <= 24)   score += 2;
-    else               { score += 3; hasCritical = true; }
+  if (rr == null) missingFields.push('kvėpavimo dažnis');
+  else if (rr <= 8)       add(3);
+  else if (rr <= 11)      add(1);
+  else if (rr <= 20)      add(0);
+  else if (rr <= 24)      add(2);
+  else                    add(3);
+
+  // SpO₂ (Scale 1 arba Scale 2 pacientams su hiperkapninio kvėpavimo nepakankamumo rizika)
+  if (spo2 == null) missingFields.push('SpO₂');
+  else if (spo2Scale === '2') {
+    if (spo2 <= 83)        add(3);
+    else if (spo2 <= 85)   add(2);
+    else if (spo2 <= 87)   add(1);
+    else if (spo2 <= 92)   add(0);
+    else if (!onO2 && spo2 <= 94) add(1);
+    else if (!onO2 && spo2 <= 96) add(2);
+    else if (!onO2)        add(3);
+    else                   add(0);
+  } else {
+    if (spo2 <= 91)        add(3);
+    else if (spo2 <= 93)   add(2);
+    else if (spo2 <= 95)   add(1);
+    else                   add(0);
   }
 
-  // SpO2
-  if (spo2 != null) {
-    if (spo2 <= 91)    { score += 3; hasCritical = true; }
-    else if (spo2 <= 93) score += 2;
-    else if (spo2 <= 95) score += 1;
-  }
-
-  // Papildomas O2
-  if (onO2) score += 2;
+  // Papildomas O₂
+  if (onO2) add(2);
 
   // Temperatūra
-  if (temp != null) {
-    if (temp <= 35.0)  { score += 3; hasCritical = true; }
-    else if (temp <= 36.0) score += 1;
-    else if (temp <= 38.0) score += 0;
-    else if (temp <= 39.0) score += 1;
-    else score += 2;
-  }
+  if (temp == null) missingFields.push('temperatūra');
+  else if (temp <= 35.0)  add(3);
+  else if (temp <= 36.0)  add(1);
+  else if (temp <= 38.0)  add(0);
+  else if (temp <= 39.0)  add(1);
+  else                    add(2);
 
   // AKS sistolinis
-  if (sys != null) {
-    if (sys <= 90)     { score += 3; hasCritical = true; }
-    else if (sys <= 100) score += 2;
-    else if (sys <= 110) score += 1;
-  }
+  if (sys == null) missingFields.push('sistolinis AKS');
+  else if (sys <= 90)     add(3);
+  else if (sys <= 100)    add(2);
+  else if (sys <= 110)    add(1);
+  else if (sys <= 219)    add(0);
+  else                    add(3);
 
   // Pulsas
-  if (hr != null) {
-    if (hr <= 40)      { score += 3; hasCritical = true; }
-    else if (hr <= 50)   score += 1;
-    else if (hr <= 90)   score += 0;
-    else if (hr <= 110)  score += 1;
-    else if (hr <= 130)  score += 2;
-    else               { score += 3; hasCritical = true; }
-  }
+  if (hr == null) missingFields.push('pulsas');
+  else if (hr <= 40)      add(3);
+  else if (hr <= 50)      add(1);
+  else if (hr <= 90)      add(0);
+  else if (hr <= 110)     add(1);
+  else if (hr <= 130)     add(2);
+  else                    add(3);
 
-  // AVPU
-  if (avpu && avpu !== 'A') { score += 3; hasCritical = true; }
+  // AVPU / naujai atsiradęs sumišimas
+  if (!avpu) missingFields.push('sąmonės būklė');
+  else if (avpu !== 'A')  add(3);
 
-  return { score, hasCritical };
+  return {
+    score,
+    hasRedScore,
+    hasCritical: hasRedScore, // palikta suderinamumui su esamu kodu
+    isComplete: missingFields.length === 0,
+    missingFields
+  };
 }
 
-function news2Text(score, hasCritical) {
-  if (score === 0) {
-    return 'paciento būklė stabili. Rekomenduojama tęsti stebėseną ir kartoti gyvybinius rodiklius pagal įprastą skyriaus tvarką.';
+function news2Text(score, hasRedScore, isComplete = true, missingFields = []) {
+  if (!isComplete) {
+    return `NEWS2 neapskaičiuotas – trūksta duomenų: ${missingFields.join(', ')}. Užpildykite visus NEWS2 gyvybinius rodiklius, kad nebūtų klaidingai rodoma stabili būklė.`;
   }
-  if (score >= 7 || hasCritical) {
+  if (score >= 7) {
     return 'aukšta klinikinė rizika. Nedelsiant pranešti gydytojui, reikalingas skubus gydytojo įvertinimas. Reikalinga nuolatinė gyvybinių rodiklių stebėsena.';
   }
   if (score >= 5) {
     return 'vidutinė klinikinė rizika. Skubiai informuoti gydytoją, užtikrinti dažną paciento būklės stebėseną – kas 30–60 min., svarstyti papildomą monitoravimą pagal būklę.';
   }
-  if (score >= 4 && hasCritical) {
-    return 'Yra bent vienas kritinis (3 balų) parametras – tai rodo galimą paciento būklės blogėjimą. Reikėtų įvertinti paciento būklę ir informuoti gydytoją. Gyvybinių rodiklių stebėjimą kartoti dažniau – kas 1 val.';
+  if (hasRedScore) {
+    return 'žemos–vidutinės rizikos trigeris: yra vienas 3 balų („raudonas“) parametras. Reikėtų įvertinti paciento būklę, informuoti gydytoją ir gyvybinius rodiklius kartoti dažniau – kas 1 val.';
+  }
+  if (score === 0) {
+    return 'paciento būklė stabili. Rekomenduojama tęsti stebėseną ir kartoti gyvybinius rodiklius pagal įprastą skyriaus tvarką.';
   }
   return 'padidinta stebėsena. Rekomenduojama įvertinti bendrą paciento klinikinę būklę ir kartoti gyvybinius rodiklius dažniau kas 4–6 val.';
 }
 
-function news2ProblemKey(score, hasCritical) {
-  if (score === 0) return 'NEWS2 0 – stabili būklė';
-  if (score >= 7 || hasCritical) return 'NEWS2 ≥7 – didelė klinikinė rizika';
+function news2ProblemKey(score, hasRedScore, isComplete = true) {
+  if (!isComplete) return null;
+  if (score >= 7) return 'NEWS2 ≥7 – didelė klinikinė rizika';
   if (score >= 5) return 'NEWS2 ≥5 – vidutinė klinikinė rizika';
+  if (score === 0) return 'NEWS2 0 – stabili būklė';
   return 'NEWS2 1–4 – nedidelė klinikinė rizika';
 }

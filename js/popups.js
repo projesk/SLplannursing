@@ -89,7 +89,7 @@ const BRADEN_CATEGORIES = [
       { v: 1, text: '1 – Visiškai nejudrus' },
       { v: 2, text: '2 – Labai ribotas' },
       { v: 3, text: '3 – Šiek tiek ribotas' },
-      { v: 4, text: '4 – Nejudrus' }
+      { v: 4, text: '4 – Judrumas neribotas' }
     ]
   },
   {
@@ -287,7 +287,7 @@ const MORSE_CATEGORIES = [
     ]
   },
   {
-    id: 'morse_iv', label: 'IV sistema / heparino spyna',
+    id: 'morse_iv', label: 'IV sistema / heparino pompa',
     options: [
       { v: 0,  text: '0 – Ne' },
       { v: 20, text: '20 – Taip' }
