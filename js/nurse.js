@@ -529,12 +529,9 @@ function openPlanModal(record) {
 function renderPlanModalBody(record, options = {}) {
   const risk = calculateRisk(record);
   const plan = record.editedPlan || record.parsed.plan || '-';
-  document.getElementById('modalTitle').textContent = options.isPreview
-    ? `Spausdinimo peržiūra · Palata ${record.palata} · Lova ${record.lova}`
-    : `Palata ${record.palata} · Lova ${record.lova}`;
+  document.getElementById('modalTitle').textContent = `Palata ${record.palata} · Lova ${record.lova}`;
   document.getElementById('modalBody').innerHTML = `
     <div id="printArea" class="${options.isPreview ? 'print-preview-content' : ''}">
-      ${options.isPreview ? '<p class="preview-note">Spausdinimo peržiūra: nevertinti testai šiame lape nerodomi.</p>' : ''}
       <div class="handwrite-line"><strong>Pacientas:</strong><span></span></div>
       <p><strong>Vertinimo laikas:</strong> ${escapeHtml(record.time || record.uploadedAt || '-')}</p>
       <p><strong>Rizika:</strong> <span class="risk-pill risk-${risk.level}">${risk.label}</span></p>
